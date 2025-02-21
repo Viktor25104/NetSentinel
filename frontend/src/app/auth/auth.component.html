@@ -1,0 +1,199 @@
+<div class="auth-container">
+  <div class="cyber-card auth-card" @slideIn>
+    <div class="auth-header">
+      <h2 class="cyber-title">{{ isLogin ? 'Вход' : 'Регистрация' }}</h2>
+      <div class="auth-tabs">
+        <button
+          [class.active]="isLogin"
+          (click)="setLoginMode(true)"
+          class="cyber-button">
+          Вход
+        </button>
+        <button
+          [class.active]="!isLogin"
+          (click)="setLoginMode(false)"
+          class="cyber-button">
+          Регистрация
+        </button>
+      </div>
+    </div>
+
+    <!-- Форма входа -->
+    <form *ngIf="isLogin" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+      <div class="form-group">
+        <label for="loginEmail">Email</label>
+        <input
+          id="loginEmail"
+          type="email"
+          formControlName="email"
+          class="cyber-input"
+          placeholder="your@email.com"
+        >
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Пароль</label>
+        <input
+          id="loginPassword"
+          type="password"
+          formControlName="password"
+          class="cyber-input"
+          placeholder="••••••••"
+        >
+      </div>
+      <button type="submit" class="cyber-button primary" [disabled]="!loginForm.valid">
+        Войти
+      </button>
+
+      <!-- Социальные сети -->
+      <div class="social-auth">
+        <div class="divider">
+          <span>или войти через</span>
+        </div>
+        <div class="social-buttons">
+          <button type="button" class="cyber-button social-button github" disabled>
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            GitHub
+          </button>
+          <button type="button" class="cyber-button social-button google" disabled>
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" class="cyber-button social-button linkedin" disabled>
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+            </svg>
+            LinkedIn
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Многошаговая форма регистрации -->
+    <form *ngIf="!isLogin" [formGroup]="registerForm" class="auth-form">
+      <!-- Шаг 1: Информация о пользователе -->
+      <div *ngIf="currentStep === 1" @slideIn>
+        <h3>Шаг 1: Личные данные</h3>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input
+            id="regEmail"
+            type="email"
+            formControlName="email"
+            class="cyber-input"
+            placeholder="your@email.com"
+          >
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Пароль</label>
+          <input
+            id="regPassword"
+            type="password"
+            formControlName="password"
+            class="cyber-input"
+            placeholder="••••••••"
+          >
+        </div>
+        <div class="form-group">
+          <label for="regName">Имя</label>
+          <input
+            id="regName"
+            type="text"
+            formControlName="name"
+            class="cyber-input"
+            placeholder="Иван Иванов"
+          >
+        </div>
+      </div>
+
+      <!-- Шаг 2: Информация о компании -->
+      <div *ngIf="currentStep === 2" @slideIn>
+        <h3>Шаг 2: Данные компании</h3>
+        <div class="form-group">
+          <label for="companyName">Название компании</label>
+          <input
+            id="companyName"
+            type="text"
+            formControlName="companyName"
+            class="cyber-input"
+            placeholder="ООО Технологии"
+          >
+        </div>
+        <div class="form-group">
+          <label for="position">Должность</label>
+          <input
+            id="position"
+            type="text"
+            formControlName="position"
+            class="cyber-input"
+            placeholder="DevOps инженер"
+          >
+        </div>
+      </div>
+
+      <!-- Шаг 3: Адрес -->
+      <div *ngIf="currentStep === 3" @slideIn>
+        <h3>Шаг 3: Адрес</h3>
+        <div class="form-group">
+          <label for="country">Страна</label>
+          <input
+            id="country"
+            type="text"
+            formControlName="country"
+            class="cyber-input"
+            placeholder="Россия"
+          >
+        </div>
+        <div class="form-group">
+          <label for="city">Город</label>
+          <input
+            id="city"
+            type="text"
+            formControlName="city"
+            class="cyber-input"
+            placeholder="Москва"
+          >
+        </div>
+      </div>
+
+      <!-- Навигация по шагам -->
+      <div class="step-navigation">
+        <button
+          *ngIf="currentStep > 1"
+          type="button"
+          class="cyber-button"
+          (click)="previousStep()">
+          Назад
+        </button>
+        <button
+          *ngIf="currentStep < 3"
+          type="button"
+          class="cyber-button"
+          (click)="nextStep()"
+          [disabled]="!canProceedToNextStep()">
+          Далее
+        </button>
+        <button
+          *ngIf="currentStep === 3"
+          type="submit"
+          class="cyber-button primary"
+          (click)="onRegister()"
+          [disabled]="!registerForm.valid">
+          Завершить регистрацию
+        </button>
+      </div>
+
+      <!-- Индикатор прогресса -->
+      <div class="progress-steps">
+        <div
+          *ngFor="let step of [1,2,3]"
+          class="step"
+          [class.active]="currentStep >= step">
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
