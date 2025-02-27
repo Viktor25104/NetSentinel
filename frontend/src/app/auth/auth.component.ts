@@ -41,13 +41,16 @@ export class AuthComponent {
     });
 
     this.registerForm = this.fb.group({
+      // Шаг 1: Личные данные
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       name: ['', Validators.required],
 
+      // Шаг 2: Данные компании
       companyName: ['', Validators.required],
       position: ['', Validators.required],
 
+      // Шаг 3: Адрес
       country: ['', Validators.required],
       city: ['', Validators.required]
     });
