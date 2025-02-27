@@ -1,1 +1,303 @@
-<p>overview works!</p>
+<div class="overview-container">
+  <!-- Основная статистика -->
+  <div class="stats-grid">
+    <!-- Сетевая активность -->
+    <div class="cyber-card stat-card">
+      <div class="card-header">
+        <h3>Сетевая активность</h3>
+        <span class="status-badge success">Стабильно</span>
+      </div>
+      <div class="card-content">
+        <div class="stat-group">
+          <div class="stat-item">
+            <div class="stat-value">1,200</div>
+            <div class="stat-label">Активные подключения</div>
+            <div class="stat-trend positive">
+              <span class="trend-icon">↑</span>
+              5% с прошлой недели
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">940<span class="unit">Mbps</span></div>
+            <div class="stat-label">Текущая скорость</div>
+            <div class="stat-trend">99.9% стабильность</div>
+          </div>
+        </div>
+        <div class="additional-info">
+          <div class="info-item">
+            <span class="info-label">Пиковая нагрузка:</span>
+            <span class="info-value">14:00 - 15:00</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Средняя задержка:</span>
+            <span class="info-value">24ms</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Безопасность -->
+    <div class="cyber-card stat-card">
+      <div class="card-header">
+        <h3>Безопасность системы</h3>
+        <span class="status-badge warning">Требует внимания</span>
+      </div>
+      <div class="card-content">
+        <div class="stat-group">
+          <div class="stat-item">
+            <div class="stat-value warning">5</div>
+            <div class="stat-label">Критические события</div>
+            <div class="stat-trend negative">
+              <span class="trend-icon">↑</span>
+              2 новых инцидента
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value success">98.5%</div>
+            <div class="stat-label">Уровень защиты</div>
+            <div class="stat-trend positive">+0.5% к прошлой неделе</div>
+          </div>
+        </div>
+        <div class="security-alerts">
+          <div class="alert-item warning">
+            <i>⚠️</i>
+            <span>2 SSL сертификата истекают через 5 дней</span>
+          </div>
+          <div class="alert-item info">
+            <i>🛡️</i>
+            <span>Последнее сканирование: 2 часа назад</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Инфраструктура -->
+    <div class="cyber-card stat-card">
+      <div class="card-header">
+        <h3>Инфраструктура</h3>
+        <span class="status-badge success">Оптимально</span>
+      </div>
+      <div class="card-content">
+        <div class="stat-group">
+          <div class="stat-item">
+            <div class="stat-value">847</div>
+            <div class="stat-label">Активные пользователи</div>
+            <div class="stat-trend positive">
+              <span class="trend-icon">↑</span>
+              12% рост активности
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">2,453</div>
+            <div class="stat-label">Устройства</div>
+            <div class="stat-trend">+145 за 24 часа</div>
+          </div>
+        </div>
+        <div class="resource-usage">
+          <div class="resource-item">
+            <div class="resource-info">
+              <span>CPU</span>
+              <span>45%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 45%"></div>
+            </div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-info">
+              <span>RAM</span>
+              <span>62%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 62%"></div>
+            </div>
+          </div>
+          <div class="resource-item">
+            <div class="resource-info">
+              <span>Storage</span>
+              <span>78%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill warning" style="width: 78%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вторая строка с дополнительными виджетами -->
+  <div class="widgets-grid">
+    <!-- Последние события -->
+    <div class="cyber-card">
+      <div class="card-header">
+        <h3>Последние события</h3>
+        <a routerLink="/dashboard/network" class="view-all-link">Все события</a>
+      </div>
+      <div class="events-list">
+        <div class="event-item">
+          <div class="event-icon success">
+            <i>✓</i>
+          </div>
+          <div class="event-content">
+            <div class="event-title">Резервное копирование завершено</div>
+            <div class="event-details">
+              <span class="event-server">srv-backup-01</span>
+              <span class="event-time">10 минут назад</span>
+            </div>
+          </div>
+        </div>
+        <div class="event-item">
+          <div class="event-icon warning">
+            <i>⚠️</i>
+          </div>
+          <div class="event-content">
+            <div class="event-title">Высокая загрузка CPU</div>
+            <div class="event-details">
+              <span class="event-server">app-server-03</span>
+              <span class="event-time">25 минут назад</span>
+            </div>
+          </div>
+        </div>
+        <div class="event-item">
+          <div class="event-icon info">
+            <i>🔄</i>
+          </div>
+          <div class="event-content">
+            <div class="event-title">Обновление системы</div>
+            <div class="event-details">
+              <span class="event-server">web-server-02</span>
+              <span class="event-time">1 час назад</span>
+            </div>
+          </div>
+        </div>
+        <div class="event-item">
+          <div class="event-icon error">
+            <i>❌</i>
+          </div>
+          <div class="event-content">
+            <div class="event-title">Ошибка подключения к БД</div>
+            <div class="event-details">
+              <span class="event-server">db-server-01</span>
+              <span class="event-time">2 часа назад</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Активные пользователи -->
+    <div class="cyber-card">
+      <div class="card-header">
+        <h3>Активные пользователи</h3>
+        <a routerLink="/dashboard/users" class="view-all-link">Все пользователи</a>
+      </div>
+      <div class="active-users">
+        <div class="user-item">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Александр" class="user-avatar">
+          <div class="user-info">
+            <div class="user-name">Александр Иванов</div>
+            <div class="user-activity">Работает с отчетами</div>
+          </div>
+          <div class="user-status online"></div>
+        </div>
+        <div class="user-item">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Elena" alt="Елена" class="user-avatar">
+          <div class="user-info">
+            <div class="user-name">Елена Петрова</div>
+            <div class="user-activity">Настройка сервера</div>
+          </div>
+          <div class="user-status busy"></div>
+        </div>
+        <div class="user-item">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Dmitry" alt="Дмитрий" class="user-avatar">
+          <div class="user-info">
+            <div class="user-name">Дмитрий Волков</div>
+            <div class="user-activity">Анализ логов</div>
+          </div>
+          <div class="user-status online"></div>
+        </div>
+        <div class="user-item">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Михаил" class="user-avatar">
+          <div class="user-info">
+            <div class="user-name">Михаил Сидоров</div>
+            <div class="user-activity">В отпуске</div>
+          </div>
+          <div class="user-status away"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Третья строка с графиками и дополнительной информацией -->
+  <div class="charts-grid">
+    <!-- Статистика сети -->
+    <div class="cyber-card">
+      <div class="card-header">
+        <h3>Статистика сети</h3>
+        <div class="time-selector">
+          <button class="time-button active">День</button>
+          <button class="time-button">Неделя</button>
+          <button class="time-button">Месяц</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-placeholder">
+          <div class="chart-line"></div>
+          <div class="chart-line"></div>
+          <div class="chart-line"></div>
+          <div class="chart-labels">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>24:00</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item">
+            <span class="legend-color incoming"></span>
+            <span>Входящий трафик</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color outgoing"></span>
+            <span>Исходящий трафик</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="cyber-card">
+      <div class="card-header">
+        <h3>Быстрые действия</h3>
+      </div>
+      <div class="quick-actions">
+        <button class="action-button">
+          <i>🔄</i>
+          <span>Перезагрузить сервер</span>
+        </button>
+        <button class="action-button">
+          <i>📊</i>
+          <span>Создать отчет</span>
+        </button>
+        <button class="action-button">
+          <i>📝</i>
+          <span>Создать документацию</span>
+        </button>
+        <button class="action-button">
+          <i>🔍</i>
+          <span>Сканировать сеть</span>
+        </button>
+        <button class="action-button">
+          <i>🔔</i>
+          <span>Настроить оповещения</span>
+        </button>
+        <button class="action-button">
+          <i>📱</i>
+          <span>Мобильное приложение</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

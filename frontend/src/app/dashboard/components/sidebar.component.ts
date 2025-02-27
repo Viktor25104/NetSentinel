@@ -28,6 +28,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <i>🤖</i>
           <span>AI Советы</span>
         </a>
+        <a routerLink="/dashboard/documentation" routerLinkActive="active" class="nav-item">
+          <i>📄</i>
+          <span>Документация</span>
+        </a>
         <a routerLink="/dashboard/settings" routerLinkActive="active" class="nav-item">
           <i>⚙️</i>
           <span>Настройки</span>
