@@ -1,1 +1,17 @@
-<p>users works!</p>
+<div class="users-page">
+  <app-user-stats [stats]="userStats"></app-user-stats>
+
+  <app-user-details
+    *ngIf="selectedUser"
+    [user]="selectedUser"
+    (close)="closeDetails()"
+    (statusChange)="updateUserStatus($event)"
+  ></app-user-details>
+
+  <app-user-table
+    [users]="users"
+    [minimized]="!!selectedUser"
+    [selectedUserId]="selectedUser?.id || null"
+    (userSelect)="selectUser($event)"
+  ></app-user-table>
+</div>
