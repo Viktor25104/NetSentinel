@@ -1,1 +1,44 @@
-<p>network works!</p>
+<div class="network-page">
+  <!-- Статистика сети -->
+  <app-network-stats [stats]="networkStats"></app-network-stats>
+
+  <!-- Интерактивная карта сети -->
+  <div class="network-visualization">
+    <div class="cyber-card">
+      <div class="card-header">
+        <h2>Карта сети</h2>
+        <div class="map-controls">
+          <button class="cyber-button" (click)="toggleMapFullscreen()">
+            <i>🔍</i> {{ isMapFullscreen ? 'Уменьшить' : 'Увеличить' }}
+          </button>
+          <button class="cyber-button" (click)="centerMap()">
+            <i>⌖</i> Центрировать
+          </button>
+          <button class="cyber-button" (click)="refreshMap()">
+            <i>🔄</i> Обновить
+          </button>
+        </div>
+      </div>
+      <app-network-map
+        [networkMap]="networkMap"
+        [isFullscreen]="isMapFullscreen"
+        (nodeSelect)="selectDevice($event)"
+      ></app-network-map>
+    </div>
+  </div>
+
+  <!-- Детали устройства -->
+  <app-network-details
+    *ngIf="selectedDevice"
+    [device]="selectedDevice"
+    (close)="closeDetails()"
+  ></app-network-details>
+
+  <!-- Таблица устройств -->
+  <app-network-table
+    [devices]="devices"
+    [minimized]="!!selectedDevice"
+    [selectedDeviceId]="selectedDevice?.id ?? null"
+    (deviceSelect)="selectDevice($event)"
+  ></app-network-table>
+</div>

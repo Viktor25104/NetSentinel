@@ -1,0 +1,126 @@
+<div class="network-details" *ngIf="device">
+  <div class="details-header">
+    <div class="device-info">
+      <button class="back-button" (click)="onClose()">←</button>
+      <div class="device-icon" [class]="device.type">
+        <i>{{ getDeviceIcon(device.type) }}</i>
+      </div>
+      <div class="device-main-info">
+        <h2>{{ device.name }}</h2>
+        <p class="device-type">{{ getDeviceTypeName(device.type) }}</p>
+      </div>
+    </div>
+    <div class="device-actions">
+      <button class="cyber-button warning" [disabled]="device.status === 'offline'">
+        <i>🔄</i> Перезагрузить
+      </button>
+      <button class="cyber-button" [disabled]="device.status === 'offline'">
+        <i>⚡</i> Выключить
+      </button>
+      <button class="cyber-button" [disabled]="device.status !== 'offline'">
+        <i>▶️</i> Включить
+      </button>
+    </div>
+  </div>
+
+  <div class="details-grid">
+    <!-- Основная информация -->
+    <div class="cyber-card">
+      <h3>Основная информация</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">IP адрес</span>
+          <span class="value">{{ device.ip }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">MAC адрес</span>
+          <span class="value">{{ device.mac }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Статус</span>
+          <span class="value status-badge" [class]="device.status">
+                {{ getStatusName(device.status) }}
+              </span>
+        </div>
+        <div class="info-item">
+          <span class="label">Локация</span>
+          <span class="value">{{ device.location }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Производитель</span>
+          <span class="value">{{ device.manufacturer }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Модель</span>
+          <span class="value">{{ device.model }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Подключение -->
+    <div class="cyber-card">
+      <h3>Подключение</h3>
+      <div class="connection-stats">
+        <div class="stat-item">
+          <div class="stat-header">
+            <span>Скорость загрузки</span>
+            <span class="stat-value">{{ device.bandwidth.download }} {{ device.bandwidth.unit }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getSpeedPercentage(device.bandwidth.download)"></div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-header">
+            <span>Скорость отдачи</span>
+            <span class="stat-value">{{ device.bandwidth.upload }} {{ device.bandwidth.unit }}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getSpeedPercentage(device.bandwidth.upload)"></div>
+          </div>
+        </div>
+      </div>
+      <div class="traffic-info">
+        <div class="traffic-item">
+          <span class="label">Входящий трафик</span>
+          <span class="value">{{ device.traffic.incoming }} {{ device.traffic.unit }}</span>
+        </div>
+        <div class="traffic-item">
+          <span class="label">Исходящий трафик</span>
+          <span class="value">{{ device.traffic.outgoing }} {{ device.traffic.unit }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Системная информация -->
+    <div class="cyber-card" *ngIf="device.metadata">
+      <h3>Системная информация</h3>
+      <div class="system-info">
+        <div class="info-item" *ngIf="device.metadata.os">
+          <span class="label">Операционная система</span>
+          <span class="value">{{ device.metadata.os }}</span>
+        </div>
+        <div class="info-item" *ngIf="device.metadata.version">
+          <span class="label">Версия</span>
+          <span class="value">{{ device.metadata.version }}</span>
+        </div>
+        <div class="info-item" *ngIf="device.metadata.services?.length">
+          <span class="label">Сервисы</span>
+          <div class="tags">
+                <span class="tag" *ngFor="let service of device.metadata.services">
+                  {{ service }}
+                </span>
+          </div>
+        </div>
+        <div class="info-item" *ngIf="device.metadata.ports?.length">
+          <span class="label">Открытые порты</span>
+          <div class="tags">
+                <span class="tag" *ngFor="let port of device.metadata.ports">
+                  {{ port }}
+                </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
