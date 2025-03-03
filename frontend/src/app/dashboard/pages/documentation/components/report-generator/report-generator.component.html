@@ -1,0 +1,366 @@
+<div class="reports-container">
+  <div class="reports-header">
+    <h2>Генератор отчетов</h2>
+    <button class="cyber-button" (click)="onCreateReport()">
+      <i>+</i> Новый отчет
+    </button>
+  </div>
+
+  <div class="reports-tabs">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'templates'"
+      (click)="activeTab = 'templates'">
+      Шаблоны отчетов
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'scheduled'"
+      (click)="activeTab = 'scheduled'">
+      Запланированные отчеты
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'history'"
+      (click)="activeTab = 'history'">
+      История отчетов
+    </button>
+  </div>
+
+  <!-- Шаблоны отчетов -->
+  <div *ngIf="activeTab === 'templates'" class="report-templates">
+    <div class="templates-grid">
+      <div
+        *ngFor="let template of reportTemplates"
+        class="report-template cyber-card"
+        (click)="onSelectReportTemplate(template)">
+        <div class="template-icon" [class]="template.type">
+          <i>{{ getReportTypeIcon(template.type) }}</i>
+        </div>
+        <div class="template-info">
+          <h3>{{ template.name }}</h3>
+          <div class="template-meta">
+                <span class="template-type" [class]="template.type">
+                  {{ getReportTypeLabel(template.type) }}
+                </span>
+            <span class="template-period">
+                  {{ getPeriodLabel(template.period) }}
+                </span>
+          </div>
+        </div>
+        <div class="template-actions">
+          <button class="cyber-button small" (click)="$event.stopPropagation(); onGenerateReport(template)">
+            <i>⚡</i> Сгенерировать
+          </button>
+          <button class="cyber-button small" (click)="$event.stopPropagation(); onScheduleReport(template)">
+            <i>🕒</i> Запланировать
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Запланированные отчеты -->
+  <div *ngIf="activeTab === 'scheduled'" class="scheduled-reports">
+    <div class="reports-list">
+      <div *ngIf="scheduledReports.length === 0" class="empty-state">
+        <div class="empty-icon">🕒</div>
+        <h3>Нет запланированных отчетов</h3>
+        <p>Создайте новый отчет или запланируйте существующий шаблон</p>
+      </div>
+
+      <div
+        *ngFor="let report of scheduledReports"
+        class="report-item cyber-card">
+        <div class="report-info">
+          <h3>{{ report.name }}</h3>
+          <div class="report-meta">
+                <span class="report-type" [class]="report.type">
+                  {{ getReportTypeLabel(report.type) }}
+                </span>
+            <span class="report-schedule">
+                  {{ getScheduleLabel(report.schedule) }}
+                </span>
+          </div>
+          <div class="report-details">
+            <div class="detail-item">
+              <span class="detail-label">Последняя генерация:</span>
+              <span class="detail-value">{{ formatDate(report.lastGenerated) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Получатели:</span>
+              <span class="detail-value">{{ getRecipientsList(report) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="report-actions">
+          <button class="cyber-button small" (click)="onEditReport(report)">
+            <i>✏️</i> Изменить
+          </button>
+          <button class="cyber-button small" (click)="onGenerateReport(report)">
+            <i>⚡</i> Сгенерировать
+          </button>
+          <button class="cyber-button small warning" (click)="onDeleteReport(report)">
+            <i>🗑️</i> Удалить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- История отчетов -->
+  <div *ngIf="activeTab === 'history'" class="report-history">
+    <div class="reports-list">
+      <div *ngIf="reportHistory.length === 0" class="empty-state">
+        <div class="empty-icon">📊</div>
+        <h3>История отчетов пуста</h3>
+        <p>Сгенерируйте отчет, чтобы увидеть его в истории</p>
+      </div>
+
+      <div
+        *ngFor="let report of reportHistory"
+        class="report-item cyber-card">
+        <div class="report-info">
+          <h3>{{ report.name }}</h3>
+          <div class="report-meta">
+                <span class="report-type" [class]="report.type">
+                  {{ getReportTypeLabel(report.type) }}
+                </span>
+            <span class="report-format">
+                  {{ report.format.toUpperCase() }}
+                </span>
+          </div>
+          <div class="report-details">
+            <div class="detail-item">
+              <span class="detail-label">Дата генерации:</span>
+              <span class="detail-value">{{ formatDate(report.lastGenerated) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="report-actions">
+          <button class="cyber-button small" (click)="onViewReport(report)">
+            <i>👁️</i> Просмотр
+          </button>
+          <button class="cyber-button small" (click)="onDownloadReport(report)">
+            <i>📥</i> Скачать
+          </button>
+          <button class="cyber-button small" (click)="onRegenerateReport(report)">
+            <i>🔄</i> Обновить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Форма создания/редактирования отчета -->
+  <div *ngIf="showReportForm" class="report-form-overlay">
+    <div class="report-form cyber-card">
+      <div class="form-header">
+        <h3>{{ editingReport ? 'Редактирование отчета' : 'Новый отчет' }}</h3>
+        <button class="close-button" (click)="closeReportForm()">✕</button>
+      </div>
+      <div class="form-content">
+        <div class="form-group">
+          <label>Название отчета</label>
+          <input type="text" class="cyber-input" [(ngModel)]="currentReport.name">
+        </div>
+        <div class="form-group">
+          <label>Тип отчета</label>
+          <select class="cyber-input" [(ngModel)]="currentReport.type">
+            <option value="server">Серверы</option>
+            <option value="network">Сеть</option>
+            <option value="security">Безопасность</option>
+            <option value="user">Пользователи</option>
+            <option value="custom">Пользовательский</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Период</label>
+          <select class="cyber-input" [(ngModel)]="currentReport.period">
+            <option value="daily">Ежедневно</option>
+            <option value="weekly">Еженедельно</option>
+            <option value="monthly">Ежемесячно</option>
+            <option value="custom">Пользовательский</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Формат</label>
+          <select class="cyber-input" [(ngModel)]="currentReport.format">
+            <option value="pdf">PDF</option>
+            <option value="html">HTML</option>
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+          </select>
+        </div>
+
+        <div class="form-section">
+          <h4>Расписание</h4>
+          <div class="form-group">
+            <label class="cyber-switch">
+              <input type="checkbox" [(ngModel)]="scheduleEnabled">
+              <span class="switch-slider"></span>
+              <span class="switch-label">Включить расписание</span>
+            </label>
+          </div>
+
+          <div *ngIf="scheduleEnabled" class="schedule-options">
+            <div class="form-group">
+              <label>Частота</label>
+              <select class="cyber-input" [(ngModel)]="scheduleFrequency">
+                <option value="daily">Ежедневно</option>
+                <option value="weekly">Еженедельно</option>
+                <option value="monthly">Ежемесячно</option>
+              </select>
+            </div>
+
+            <div class="form-group" *ngIf="scheduleFrequency === 'weekly'">
+              <label>День недели</label>
+              <select class="cyber-input" [(ngModel)]="scheduleDay">
+                <option value="1">Понедельник</option>
+                <option value="2">Вторник</option>
+                <option value="3">Среда</option>
+                <option value="4">Четверг</option>
+                <option value="5">Пятница</option>
+                <option value="6">Суббота</option>
+                <option value="0">Воскресенье</option>
+              </select>
+            </div>
+
+            <div class="form-group" *ngIf="scheduleFrequency === 'monthly'">
+              <label>День месяца</label>
+              <select class="cyber-input" [(ngModel)]="scheduleDay">
+                <option *ngFor="let day of monthDays" [value]="day">{{ day }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Время</label>
+              <input type="time" class="cyber-input" [(ngModel)]="scheduleTime">
+            </div>
+
+            <div class="form-group">
+              <label>Получатели (email)</label>
+              <div class="recipients-input">
+                <div class="recipients-list">
+                      <span
+                        *ngFor="let recipient of scheduleRecipients; let i = index"
+                        class="recipient-tag">
+                        {{ recipient }}
+                        <button class="remove-recipient" (click)="removeRecipient(i)">✕</button>
+                      </span>
+                </div>
+                <div class="add-recipient">
+                  <input
+                    type="email"
+                    class="cyber-input"
+                    [(ngModel)]="newRecipient"
+                    placeholder="Добавить email..."
+                    (keydown.enter)="addRecipient()">
+                  <button class="cyber-button small" (click)="addRecipient()">
+                    <i>+</i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Содержание отчета</h4>
+          <div class="form-group">
+            <label>Разделы</label>
+            <div class="sections-checkboxes">
+              <label class="cyber-checkbox" *ngFor="let section of availableSections">
+                <input
+                  type="checkbox"
+                  [checked]="isSelectedSection(section.id)"
+                  (change)="toggleSection(section.id)">
+                <span class="checkbox-label">{{ section.name }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Фильтры</label>
+            <div class="filters-form" [ngSwitch]="currentReport.type">
+              <!-- Серверы -->
+              <div *ngSwitchCase="'server'">
+                <div class="filter-item">
+                  <label>Статус серверов</label>
+                  <select class="cyber-input" [(ngModel)]="currentReport.config.filters.status">
+                    <option value="all">Все</option>
+                    <option value="online">Онлайн</option>
+                    <option value="offline">Офлайн</option>
+                    <option value="warning">Предупреждение</option>
+                  </select>
+                </div>
+                <div class="filter-item">
+                  <label>Порог загрузки CPU (%)</label>
+                  <input
+                    type="number"
+                    class="cyber-input"
+                    [(ngModel)]="currentReport.config.filters.cpuThreshold"
+                    min="0"
+                    max="100">
+                </div>
+              </div>
+
+              <!-- Сеть -->
+              <div *ngSwitchCase="'network'">
+                <div class="filter-item">
+                  <label>Период</label>
+                  <select class="cyber-input" [(ngModel)]="currentReport.config.filters.period">
+                    <option value="1d">1 день</option>
+                    <option value="7d">7 дней</option>
+                    <option value="30d">30 дней</option>
+                  </select>
+                </div>
+                <div class="filter-item">
+                  <label>Включить аномалии</label>
+                  <label class="cyber-switch">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="currentReport.config.filters.includeAnomalies">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Безопасность -->
+              <div *ngSwitchCase="'security'">
+                <div class="filter-item">
+                  <label>Уровень важности</label>
+                  <select class="cyber-input" [(ngModel)]="currentReport.config.filters.severity">
+                    <option value="all">Все</option>
+                    <option value="critical">Критический</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Пользователи -->
+              <div *ngSwitchCase="'user'">
+                <div class="filter-item">
+                  <label>Статус пользователей</label>
+                  <select class="cyber-input" [(ngModel)]="currentReport.config.filters.userStatus">
+                    <option value="all">Все</option>
+                    <option value="active">Активные</option>
+                    <option value="inactive">Неактивные</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="cyber-button" (click)="closeReportForm()">Отмена</button>
+        <button class="cyber-button primary" (click)="saveReport()">
+          {{ editingReport ? 'Сохранить' : 'Создать' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

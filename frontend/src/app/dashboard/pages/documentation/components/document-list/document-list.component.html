@@ -1,0 +1,94 @@
+<div class="documents-container">
+  <div class="documents-header">
+    <h2>Мои документы</h2>
+    <div class="search-filter">
+      <input
+        type="text"
+        class="cyber-input"
+        placeholder="Поиск документов..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()">
+    </div>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Статус:</label>
+      <select class="cyber-input" [(ngModel)]="filter.status" (ngModelChange)="onFilterChange()">
+        <option [ngValue]="undefined">Все</option>
+        <option value="draft">Черновики</option>
+        <option value="published">Опубликованные</option>
+        <option value="archived">Архивные</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Категория:</label>
+      <select class="cyber-input" [(ngModel)]="filter.category" (ngModelChange)="onFilterChange()">
+        <option [ngValue]="undefined">Все</option>
+        <option value="infrastructure">Инфраструктура</option>
+        <option value="network">Сеть</option>
+        <option value="security">Безопасность</option>
+        <option value="compliance">Соответствие</option>
+        <option value="operations">Операции</option>
+        <option value="incident">Инциденты</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Период:</label>
+      <div class="date-range">
+        <input
+          type="date"
+          class="cyber-input"
+          [(ngModel)]="filter.dateFrom"
+          (ngModelChange)="onFilterChange()">
+        <span>—</span>
+        <input
+          type="date"
+          class="cyber-input"
+          [(ngModel)]="filter.dateTo"
+          (ngModelChange)="onFilterChange()">
+      </div>
+    </div>
+    <button class="cyber-button" (click)="resetFilters()" *ngIf="hasActiveFilters">
+      Сбросить фильтры
+    </button>
+  </div>
+
+  <div class="documents-list" *ngIf="filteredDocuments.length > 0">
+    <div
+      *ngFor="let document of filteredDocuments"
+      class="document-item cyber-card"
+      (click)="onSelectDocument(document)">
+      <div class="document-status" [class]="document.status">
+        {{ getStatusLabel(document.status) }}
+      </div>
+      <div class="document-info">
+        <h3>{{ document.name }}</h3>
+        <div class="document-meta">
+          <span class="document-date">Обновлено: {{ formatDate(document.updatedAt) }}</span>
+          <div class="document-tags">
+            <span *ngFor="let tag of document.tags" class="document-tag">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="document-actions">
+        <button class="cyber-button small" (click)="$event.stopPropagation(); onEditDocument(document)">
+          <i>✏️</i>
+        </button>
+        <button class="cyber-button small" (click)="$event.stopPropagation(); onExportDocument(document)">
+          <i>📥</i>
+        </button>
+        <button class="cyber-button small warning" (click)="$event.stopPropagation(); onDeleteDocument(document)">
+          <i>🗑️</i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="filteredDocuments.length === 0">
+    <div class="empty-icon">📄</div>
+    <h3>Документы не найдены</h3>
+    <p>Попробуйте изменить параметры поиска или создайте новый документ</p>
+    <button class="cyber-button" (click)="onCreateDocument()">Создать документ</button>
+  </div>
+</div>

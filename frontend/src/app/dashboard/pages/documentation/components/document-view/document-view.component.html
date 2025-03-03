@@ -1,0 +1,54 @@
+<div class="document-view" *ngIf="document && template">
+  <div class="document-header">
+    <div class="document-title">
+      <h1>{{ document.name }}</h1>
+      <div class="document-meta">
+        <span class="document-template">{{ template.name }}</span>
+        <span class="document-status" [class]="document.status">
+              {{ getStatusLabel(document.status) }}
+            </span>
+      </div>
+    </div>
+    <div class="document-actions">
+      <button class="cyber-button" (click)="onEdit()">
+        <i>✏️</i> Редактировать
+      </button>
+      <button class="cyber-button" (click)="onExport()">
+        <i>📥</i> Экспорт
+      </button>
+      <button class="cyber-button" *ngIf="document.status !== 'published'" (click)="onPublish()">
+        <i>📤</i> Опубликовать
+      </button>
+    </div>
+  </div>
+
+  <div class="document-content">
+    <div class="document-sections">
+      <app-document-section
+        *ngFor="let section of template.sections"
+        [section]="section"
+        [content]="document.sections[section.id]">
+      </app-document-section>
+    </div>
+  </div>
+
+  <div class="document-footer">
+    <div class="document-info">
+      <div class="info-item">
+        <span class="label">Создан:</span>
+        <span class="value">{{ formatDate(document.createdAt) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Обновлен:</span>
+        <span class="value">{{ formatDate(document.updatedAt) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Автор:</span>
+        <span class="value">{{ document.createdBy }}</span>
+      </div>
+    </div>
+    <div class="document-tags">
+      <span class="tag" *ngFor="let tag of document.tags">{{ tag }}</span>
+    </div>
+  </div>
+</div>

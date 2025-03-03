@@ -1,0 +1,64 @@
+<div class="document-section">
+  <div class="section-header">
+    <h2>{{ section.title }}</h2>
+    <span class="required-badge" *ngIf="section.required">Обязательно</span>
+  </div>
+
+  <div class="section-content" [ngSwitch]="section.type">
+    <!-- Текстовый раздел -->
+    <div *ngSwitchCase="'text'" class="text-content">
+      <p>{{ content || 'Нет данных' }}</p>
+    </div>
+
+    <!-- Таблица -->
+    <div *ngSwitchCase="'table'" class="table-content">
+      <table class="cyber-table" *ngIf="content && content.headers && content.rows">
+        <thead>
+        <tr>
+          <th *ngFor="let header of content.headers">{{ header }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let row of content.rows">
+          <td *ngFor="let cell of row">{{ cell }}</td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="no-data" *ngIf="!content || !content.headers || !content.rows">
+        Нет данных
+      </div>
+    </div>
+
+    <!-- Список -->
+    <div *ngSwitchCase="'list'" class="list-content">
+      <ul *ngIf="content && content.length">
+        <li *ngFor="let item of content">{{ item }}</li>
+      </ul>
+      <div class="no-data" *ngIf="!content || !content.length">
+        Нет данных
+      </div>
+    </div>
+
+    <!-- Код -->
+    <div *ngSwitchCase="'code'" class="code-content">
+      <div class="code-header" *ngIf="content && content.language">
+        <span class="language-badge">{{ content.language }}</span>
+      </div>
+      <pre class="code-block" *ngIf="content && content.code">{{ content.code }}</pre>
+      <div class="no-data" *ngIf="!content || !content.code">
+        Нет данных
+      </div>
+    </div>
+
+    <!-- Изображение -->
+    <div *ngSwitchCase="'image'" class="image-content">
+      <div class="image-container" *ngIf="content && content.url">
+        <img [src]="content.url" [alt]="content.caption || 'Изображение'">
+        <div class="image-caption" *ngIf="content.caption">{{ content.caption }}</div>
+      </div>
+      <div class="no-data" *ngIf="!content || !content.url">
+        Нет изображения
+      </div>
+    </div>
+  </div>
+</div>
