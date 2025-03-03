@@ -1,1 +1,111 @@
-<p>settings works!</p>
+<div class="settings-page">
+  <h1>Настройки</h1>
+
+  <!-- Тема -->
+  <div class="cyber-card">
+    <h2>Внешний вид</h2>
+    <div class="themes-grid">
+      <div *ngFor="let theme of availableThemes"
+           class="theme-card"
+           [class.active]="currentSettings.theme === theme.name"
+           (click)="updateTheme(theme.name)">
+        <div class="theme-preview" [style.background]="theme.background">
+          <div class="color-dot" [style.background]="theme.primary"></div>
+          <div class="color-dot" [style.background]="theme.secondary"></div>
+          <div class="color-dot" [style.background]="theme.accent"></div>
+        </div>
+        <div class="theme-name">{{ theme.name }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Язык -->
+  <div class="cyber-card">
+    <h2>Язык интерфейса</h2>
+    <div class="language-selector">
+      <button class="cyber-button"
+              [class.active]="currentSettings.language === 'ru'"
+              (click)="updateLanguage('ru')">
+        Русский
+      </button>
+      <button class="cyber-button"
+              [class.active]="currentSettings.language === 'uk'"
+              (click)="updateLanguage('uk')">
+        Українська
+      </button>
+      <button class="cyber-button"
+              [class.active]="currentSettings.language === 'en'"
+              (click)="updateLanguage('en')">
+        English
+      </button>
+    </div>
+  </div>
+
+  <!-- AI Рекомендации -->
+  <div class="cyber-card">
+    <h2>AI Рекомендации</h2>
+    <div class="ai-settings">
+      <label class="cyber-switch">
+        <input type="checkbox"
+               [checked]="currentSettings.aiRecommendations"
+               (change)="toggleAIRecommendations()">
+        <span class="switch-slider"></span>
+        <span class="switch-label">Включить AI рекомендации</span>
+      </label>
+      <p class="setting-description">
+        При отключении рекомендаций вкладка AI будет скрыта из бокового меню
+      </p>
+    </div>
+  </div>
+
+  <!-- Безопасность -->
+  <div class="cyber-card">
+    <h2>Безопасность</h2>
+    <div class="security-settings">
+      <!-- Двухфакторная аутентификация -->
+      <div class="security-option">
+        <label class="cyber-switch">
+          <input type="checkbox"
+                 [checked]="currentSettings.securitySettings.twoFactorAuth"
+                 (change)="toggle2FA()">
+          <span class="switch-slider"></span>
+          <span class="switch-label">Двухфакторная аутентификация</span>
+        </label>
+        <p class="setting-description">
+          Дополнительный уровень защиты с помощью кода подтверждения
+        </p>
+      </div>
+
+      <!-- Таймаут сессии -->
+      <div class="security-option">
+        <label>Таймаут сессии (минуты)</label>
+        <input type="number"
+               class="cyber-input"
+               [value]="currentSettings.securitySettings.sessionTimeout"
+               (change)="updateSessionTimeout($event)">
+        <p class="setting-description">
+          Автоматический выход при отсутствии активности
+        </p>
+      </div>
+
+      <!-- Срок действия пароля -->
+      <div class="security-option">
+        <label>Срок действия пароля (дни)</label>
+        <input type="number"
+               class="cyber-input"
+               [value]="currentSettings.securitySettings.passwordExpiration"
+               (change)="updatePasswordExpiration($event)">
+        <p class="setting-description">
+          Требовать смену пароля после указанного количества дней
+        </p>
+      </div>
+
+      <!-- Смена пароля -->
+      <div class="security-option">
+        <button class="cyber-button" (click)="showChangePasswordDialog()">
+          Сменить пароль
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,7 @@
-import { Component, ElementRef, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, Output, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
-import { NetworkMap, NetworkMapNode, NetworkMapEdge, NetworkDevice } from '../../interfaces/network.interface';
+import { NetworkMap, NetworkDevice } from '../../interfaces/network.interface';
 @Component({
   selector: 'app-network-map',
   imports: [CommonModule],
