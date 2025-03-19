@@ -1,0 +1,15 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: var(--dark-bg);
+}
+
+.dashboard-content {
+  display: flex;
+  height: calc(100vh - 64px);
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}

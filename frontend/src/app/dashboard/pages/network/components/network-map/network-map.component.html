@@ -1,0 +1,47 @@
+<div class="network-map" [class.fullscreen]="isFullscreen" #mapContainer>
+  <div class="map-legend">
+    <div class="legend-title">Типы устройств</div>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-icon router"></div>
+        <span>Маршрутизатор</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon switch"></div>
+        <span>Коммутатор</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon firewall"></div>
+        <span>Файрвол</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon endpoint"></div>
+        <span>Конечное устройство</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon iot"></div>
+        <span>IoT устройство</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-icon server"></div>
+        <span>Сервер</span>
+      </div>
+    </div>
+    <div class="legend-title">Статус подключения</div>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="connection-line active"></div>
+        <span>Активно</span>
+      </div>
+      <div class="legend-item">
+        <div class="connection-line inactive"></div>
+        <span>Неактивно</span>
+      </div>
+      <div class="legend-item">
+        <div class="connection-line degraded"></div>
+        <span>Проблемы</span>
+      </div>
+    </div>
+  </div>
+  <svg #svg></svg>
+</div>

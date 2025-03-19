@@ -1,0 +1,162 @@
+<div class="ai-page">
+  <!-- Сводка рекомендаций -->
+  <div class="recommendations-summary">
+    <div class="cyber-card summary-card">
+      <div class="summary-header">
+        <h2>Рекомендации ИИ</h2>
+        <div class="summary-stats">
+          <div class="stat-item critical">
+            <div class="stat-value">{{ getCriticalCount() }}</div>
+            <div class="stat-label">Критические</div>
+          </div>
+          <div class="stat-item high">
+            <div class="stat-value">{{ getHighCount() }}</div>
+            <div class="stat-label">Высокий приоритет</div>
+          </div>
+          <div class="stat-item medium">
+            <div class="stat-value">{{ getMediumCount() }}</div>
+            <div class="stat-label">Средний приоритет</div>
+          </div>
+          <div class="stat-item low">
+            <div class="stat-value">{{ getLowCount() }}</div>
+            <div class="stat-label">Низкий приоритет</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Фильтры -->
+  <div class="filters-section">
+    <div class="cyber-card">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <h3>Приоритет</h3>
+          <div class="filter-buttons">
+            <button class="cyber-button"
+                    [class.active]="priorityFilter === 'critical'"
+                    (click)="togglePriorityFilter('critical')">
+              Критический
+            </button>
+            <button class="cyber-button"
+                    [class.active]="priorityFilter === 'high'"
+                    (click)="togglePriorityFilter('high')">
+              Высокий
+            </button>
+            <button class="cyber-button"
+                    [class.active]="priorityFilter === 'medium'"
+                    (click)="togglePriorityFilter('medium')">
+              Средний
+            </button>
+            <button class="cyber-button"
+                    [class.active]="priorityFilter === 'low'"
+                    (click)="togglePriorityFilter('low')">
+              Низкий
+            </button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <h3>Тип</h3>
+          <div class="filter-buttons">
+            <button class="cyber-button"
+                    [class.active]="typeFilter === 'security'"
+                    (click)="toggleTypeFilter('security')">
+              Безопасность
+            </button>
+            <button class="cyber-button"
+                    [class.active]="typeFilter === 'performance'"
+                    (click)="toggleTypeFilter('performance')">
+              Производительность
+            </button>
+            <button class="cyber-button"
+                    [class.active]="typeFilter === 'network'"
+                    (click)="toggleTypeFilter('network')">
+              Сеть
+            </button>
+            <button class="cyber-button"
+                    [class.active]="typeFilter === 'infrastructure'"
+                    (click)="toggleTypeFilter('infrastructure')">
+              Инфраструктура
+            </button>
+            <button class="cyber-button"
+                    [class.active]="typeFilter === 'cost'"
+                    (click)="toggleTypeFilter('cost')">
+              Стоимость
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="filters-actions">
+        <button class="cyber-button" (click)="clearFilters()" *ngIf="hasActiveFilters">
+          Сбросить фильтры
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Список рекомендаций -->
+  <div class="recommendations-list">
+    <div *ngFor="let rec of filteredRecommendations" class="recommendation-card cyber-card" [class]="rec.priority">
+      <div class="rec-header">
+        <div class="rec-priority">
+          <i [class]="getPriorityIcon(rec.priority)"></i>
+          <span>{{ getPriorityLabel(rec.priority) }}</span>
+        </div>
+        <div class="rec-type">
+          <i [class]="getTypeIcon(rec.type)"></i>
+          <span>{{ getTypeLabel(rec.type) }}</span>
+        </div>
+        <div class="rec-time">{{ rec.createdAt }}</div>
+      </div>
+
+      <div class="rec-content">
+        <h3>{{ rec.title }}</h3>
+        <p class="rec-description">{{ rec.description }}</p>
+
+        <div class="rec-details">
+          <div class="detail-item">
+            <span class="label">Влияние:</span>
+            <span class="value">{{ rec.impact }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Время исправления:</span>
+            <span class="value">{{ rec.timeToFix }}</span>
+          </div>
+        </div>
+
+        <div class="rec-actions">
+          <h4>Рекомендуемые действия:</h4>
+          <ul>
+            <li *ngFor="let action of rec.actions">{{ action }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rec-footer">
+        <div class="status-badge" [class]="rec.status">
+          {{ getStatusLabel(rec.status) }}
+        </div>
+        <div class="action-buttons">
+          <button class="cyber-button" *ngIf="rec.status === 'new'">
+            Начать исправление
+          </button>
+          <button class="cyber-button" *ngIf="rec.status === 'in_progress'">
+            Завершить
+          </button>
+          <button class="cyber-button warning" *ngIf="rec.status === 'new'">
+            Игнорировать
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сообщение, если нет рекомендаций -->
+    <div *ngIf="filteredRecommendations.length === 0" class="no-recommendations cyber-card">
+      <div class="empty-state">
+        <i>🔍</i>
+        <h3>Нет рекомендаций</h3>
+        <p>По выбранным фильтрам не найдено рекомендаций</p>
+      </div>
+    </div>
+  </div>
+</div>

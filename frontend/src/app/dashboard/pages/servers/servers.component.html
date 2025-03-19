@@ -1,0 +1,12 @@
+<app-server-details
+  *ngIf="selectedServer"
+  [server]="selectedServer"
+  (close)="closeDetails()"
+></app-server-details>
+
+<app-server-table
+  [servers]="servers"
+  [minimized]="!!selectedServer"
+  [selectedServerId]="selectedServer?.id || null"
+  (serverSelect)="selectServer($event)"
+></app-server-table>

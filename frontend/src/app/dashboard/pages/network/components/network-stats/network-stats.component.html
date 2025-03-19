@@ -1,0 +1,76 @@
+<div class="stats-grid">
+  <!-- Общая статистика -->
+  <div class="cyber-card">
+    <h3>Общая статистика</h3>
+    <div class="stats-overview">
+      <div class="stat-item">
+        <div class="stat-value">{{ stats.total.devices }}</div>
+        <div class="stat-label">Всего устройств</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value success">{{ stats.total.activeDevices }}</div>
+        <div class="stat-label">Активных</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">
+          {{ stats.total.bandwidth.used }}/{{ stats.total.bandwidth.total }}
+          {{ stats.total.bandwidth.unit }}
+        </div>
+        <div class="stat-label">Использование канала</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Статистика по типам устройств -->
+  <div class="cyber-card">
+    <h3>По типам устройств</h3>
+    <div class="stats-list">
+      <div class="stat-row" *ngFor="let type of deviceTypes">
+        <span class="stat-name">{{ getDeviceTypeName(type) }}</span>
+        <div class="stat-bar-container">
+          <div class="stat-bar"
+               [style.width.%]="(stats.byType[type] / stats.total.devices) * 100"
+               [class]="type">
+          </div>
+          <span class="stat-count">{{ stats.byType[type] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Статистика по статусу -->
+  <div class="cyber-card">
+    <h3>По статусу</h3>
+    <div class="stats-list">
+      <div class="stat-row" *ngFor="let status of deviceStatuses">
+        <span class="stat-name">{{ getStatusName(status) }}</span>
+        <div class="stat-bar-container">
+          <div class="stat-bar"
+               [style.width.%]="(stats.byStatus[status] / stats.total.devices) * 100"
+               [class]="status">
+          </div>
+          <span class="stat-count">{{ stats.byStatus[status] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Оповещения -->
+  <div class="cyber-card">
+    <h3>Оповещения</h3>
+    <div class="alerts-grid">
+      <div class="alert-item critical">
+        <div class="alert-count">{{ stats.alerts.critical }}</div>
+        <div class="alert-label">Критические</div>
+      </div>
+      <div class="alert-item warning">
+        <div class="alert-count">{{ stats.alerts.warning }}</div>
+        <div class="alert-label">Предупреждения</div>
+      </div>
+      <div class="alert-item info">
+        <div class="alert-count">{{ stats.alerts.info }}</div>
+        <div class="alert-label">Информационные</div>
+      </div>
+    </div>
+  </div>
+</div>

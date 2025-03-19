@@ -1,0 +1,91 @@
+<div class="network-table-container" [class.minimized]="minimized">
+  <div class="table-header">
+    <h2>Устройства сети</h2>
+    <div class="table-actions">
+      <div class="filters">
+        <select class="cyber-input" [(ngModel)]="typeFilter" (ngModelChange)="onFiltersChange()">
+          <option value="">Все типы</option>
+          <option value="endpoint">Конечные устройства</option>
+          <option value="router">Маршрутизаторы</option>
+          <option value="switch">Коммутаторы</option>
+          <option value="firewall">Файрволы</option>
+          <option value="iot">IoT устройства</option>
+          <option value="server">Серверы</option>
+        </select>
+        <select class="cyber-input" [(ngModel)]="statusFilter" (ngModelChange)="onFiltersChange()">
+          <option value="">Все статусы</option>
+          <option value="online">В сети</option>
+          <option value="offline">Не в сети</option>
+          <option value="warning">Предупреждение</option>
+          <option value="maintenance">Обслуживание</option>
+        </select>
+        <select class="cyber-input" [(ngModel)]="locationFilter" (ngModelChange)="onFiltersChange()">
+          <option value="">Все локации</option>
+          <option *ngFor="let location of uniqueLocations" [value]="location">
+            {{ location }}
+          </option>
+        </select>
+      </div>
+      <div class="search-bar">
+        <input type="text"
+               class="cyber-input"
+               placeholder="Поиск по имени или IP..."
+               [(ngModel)]="searchQuery"
+               (ngModelChange)="onFiltersChange()">
+      </div>
+      <button class="cyber-button">
+        <i>➕</i> Добавить устройство
+      </button>
+    </div>
+  </div>
+
+  <table class="network-table">
+    <thead>
+    <tr>
+      <th>Устройство</th>
+      <th>Тип</th>
+      <th>Статус</th>
+      <th>IP адрес</th>
+      <th>Локация</th>
+      <th>Последняя активность</th>
+      <th>Подключение</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let device of filteredDevices"
+        (click)="onDeviceSelect(device)"
+        [class.selected]="selectedDeviceId === device.id">
+      <td>
+        <div class="device-info">
+          <div class="device-icon" [class]="device.type">
+            <i>{{ getDeviceIcon(device.type) }}</i>
+          </div>
+          <div class="device-details">
+            <div class="device-name">{{ device.name }}</div>
+            <div class="device-mac">{{ device.mac }}</div>
+          </div>
+        </div>
+      </td>
+      <td>{{ getDeviceTypeName(device.type) }}</td>
+      <td>
+              <span class="status-badge" [class]="device.status">
+                {{ getStatusName(device.status) }}
+              </span>
+      </td>
+      <td>{{ device.ip }}</td>
+      <td>{{ device.location }}</td>
+      <td>{{ device.lastSeen }}</td>
+      <td>
+        <div class="connection-info">
+                <span class="connection-type" [class]="device.connectionType">
+                  {{ device.connectionType === 'wired' ? 'Проводное' : 'Беспроводное' }}
+                </span>
+          <span class="connection-speed">
+                  {{ device.bandwidth.download }}/{{ device.bandwidth.upload }} {{ device.bandwidth.unit }}
+                </span>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

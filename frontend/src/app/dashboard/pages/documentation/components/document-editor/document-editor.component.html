@@ -1,0 +1,172 @@
+<div class="editor-container" *ngIf="document && template">
+  <div class="editor-header">
+    <div class="document-info">
+      <input
+        type="text"
+        class="document-title-input"
+        [(ngModel)]="document.name"
+        placeholder="Название документа">
+      <div class="document-meta">
+        <span class="document-template">{{ template.name }}</span>
+        <span class="document-status" [class]="document.status">
+              {{ getStatusLabel(document.status) }}
+            </span>
+      </div>
+    </div>
+    <div class="editor-actions">
+      <button class="cyber-button" (click)="onSave()">
+        <i>💾</i> Сохранить
+      </button>
+      <button class="cyber-button" (click)="onPublish()" *ngIf="document.status !== 'published'">
+        <i>📤</i> Опубликовать
+      </button>
+      <button class="cyber-button" (click)="onExport()">
+        <i>📥</i> Экспорт
+      </button>
+      <button class="cyber-button" (click)="onCancel()">
+        <i>✖️</i> Отмена
+      </button>
+    </div>
+  </div>
+
+  <div class="editor-content">
+    <div class="document-sections">
+      <div *ngFor="let section of template.sections" class="document-section">
+        <div class="section-header">
+          <h3>{{ section.title }}</h3>
+          <span class="required-badge" *ngIf="section.required">Обязательно</span>
+        </div>
+
+        <ng-container [ngSwitch]="section.type">
+          <!-- Текстовый раздел -->
+          <div *ngSwitchCase="'text'" class="section-content">
+                <textarea
+                  class="cyber-input section-textarea"
+                  [(ngModel)]="document.sections[section.id]"
+                  [placeholder]="section.placeholder || 'Введите текст...'"
+                  rows="6"></textarea>
+          </div>
+
+          <!-- Таблица -->
+          <div *ngSwitchCase="'table'" class="section-content">
+            <div class="table-controls">
+              <button class="cyber-button small" (click)="addTableRow(section.id)">
+                <i>+</i> Добавить строку
+              </button>
+              <button class="cyber-button small" (click)="addTableColumn(section.id)">
+                <i>+</i> Добавить столбец
+              </button>
+            </div>
+            <div class="table-wrapper">
+              <table class="cyber-table editable-table">
+                <thead>
+                <tr>
+                  <th *ngFor="let col of getTableColumns(section.id); let colIndex = index">
+                    <input
+                      type="text"
+                      class="table-header-input"
+                      [(ngModel)]="document.sections[section.id].headers[colIndex]"
+                      placeholder="Заголовок">
+                    <button
+                      class="remove-column-btn"
+                      (click)="removeTableColumn(section.id, colIndex)"
+                      *ngIf="document.sections[section.id].headers.length > 1">
+                      ✕
+                    </button>
+                  </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let row of getTableRows(section.id); let rowIndex = index">
+                  <td *ngFor="let col of getTableColumns(section.id); let colIndex = index">
+                    <input
+                      type="text"
+                      class="table-cell-input"
+                      [(ngModel)]="document.sections[section.id].rows[rowIndex][colIndex]"
+                      placeholder="Значение">
+                  </td>
+                  <td class="row-actions">
+                    <button
+                      class="remove-row-btn"
+                      (click)="removeTableRow(section.id, rowIndex)"
+                      *ngIf="document.sections[section.id].rows.length > 1">
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Список -->
+          <div *ngSwitchCase="'list'" class="section-content">
+            <div class="list-controls">
+              <button class="cyber-button small" (click)="addListItem(section.id)">
+                <i>+</i> Добавить элемент
+              </button>
+            </div>
+            <div class="list-items">
+              <div
+                *ngFor="let item of getListItems(section.id); let itemIndex = index"
+                class="list-item">
+                <input
+                  type="text"
+                  class="cyber-input list-item-input"
+                  [(ngModel)]="document.sections[section.id][itemIndex]"
+                  placeholder="Элемент списка">
+                <button
+                  class="remove-item-btn"
+                  (click)="removeListItem(section.id, itemIndex)"
+                  *ngIf="document.sections[section.id].length > 1">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Код -->
+          <div *ngSwitchCase="'code'" class="section-content">
+            <div class="code-controls">
+              <select class="cyber-input language-select" [(ngModel)]="document.sections[section.id].language">
+                <option value="bash">Bash</option>
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="sql">SQL</option>
+                <option value="json">JSON</option>
+                <option value="xml">XML</option>
+                <option value="yaml">YAML</option>
+              </select>
+            </div>
+            <textarea
+              class="cyber-input code-textarea"
+              [(ngModel)]="document.sections[section.id].code"
+              placeholder="Введите код..."
+              rows="10"></textarea>
+          </div>
+
+          <!-- Изображение -->
+          <div *ngSwitchCase="'image'" class="section-content">
+            <div class="image-controls">
+              <input
+                type="text"
+                class="cyber-input image-url-input"
+                [(ngModel)]="document.sections[section.id].url"
+                placeholder="URL изображения">
+            </div>
+            <div class="image-preview" *ngIf="document.sections[section.id]?.url">
+              <img [src]="document.sections[section.id].url" alt="Предпросмотр">
+            </div>
+            <div class="image-caption">
+              <input
+                type="text"
+                class="cyber-input caption-input"
+                [(ngModel)]="document.sections[section.id].caption"
+                placeholder="Подпись к изображению">
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

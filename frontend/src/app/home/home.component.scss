@@ -1,0 +1,30 @@
+.cyber-header {
+  text-align: center;
+  margin: 4rem 0 6rem;
+}
+
+.cyber-header h1 {
+  font-size: 3.5rem;
+  font-weight: 600;
+  margin: 0;
+  background: linear-gradient(135deg, #fff, var(--primary-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+section {
+  margin: 6rem 0;
+}
+
+section h2 {
+  text-align: center;
+  margin-bottom: 3rem;
+}

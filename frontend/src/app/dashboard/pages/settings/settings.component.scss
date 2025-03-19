@@ -1,0 +1,152 @@
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settings-page h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.theme-card {
+  cursor: pointer;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.theme-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-card.active {
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid var(--primary-blue);
+}
+
+.theme-preview {
+  height: 100px;
+  border-radius: 4px;
+  padding: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.theme-name {
+  text-align: center;
+  color: #fff;
+  font-weight: 500;
+}
+
+.language-selector {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cyber-switch {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.switch-slider {
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.switch-slider::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 2px;
+  top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+input:checked + .switch-slider {
+  background: var(--primary-blue);
+}
+
+input:checked + .switch-slider::before {
+  transform: translateX(26px);
+}
+
+.switch-label {
+  color: #fff;
+  font-weight: 500;
+}
+
+.setting-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.security-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.security-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.security-option label {
+  color: #fff;
+  font-weight: 500;
+}
+
+.cyber-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  color: #fff;
+  font-family: inherit;
+  width: 200px;
+}
+
+.cyber-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+@media (max-width: 768px) {
+  .language-selector {
+    flex-direction: column;
+  }
+
+  .cyber-input {
+    width: 100%;
+  }
+}

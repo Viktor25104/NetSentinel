@@ -1,0 +1,162 @@
+.network-table-container {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.network-table-container.minimized {
+  margin-top: 1rem;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.table-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.network-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.network-table th,
+.network-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.network-table th {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.network-table tr {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.network-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.network-table tr.selected {
+  background: rgba(0, 243, 255, 0.1);
+}
+
+.device-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.device-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.device-icon.router { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+.device-icon.switch { background: rgba(33, 150, 243, 0.2); color: #2196F3; }
+.device-icon.firewall { background: rgba(244, 67, 54, 0.2); color: #F44336; }
+.device-icon.endpoint { background: rgba(156, 39, 176, 0.2); color: #9C27B0; }
+.device-icon.iot { background: rgba(255, 152, 0, 0.2); color: #FF9800; }
+.device-icon.server { background: rgba(96, 125, 139, 0.2); color: #607D8B; }
+
+.device-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.device-name {
+  color: #fff;
+  font-weight: 500;
+}
+
+.device-mac {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.status-badge.online {
+  background: rgba(0, 255, 157, 0.1);
+  color: var(--accent-green);
+}
+
+.status-badge.offline {
+  background: rgba(158, 158, 158, 0.1);
+  color: #9e9e9e;
+}
+
+.status-badge.warning {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.status-badge.maintenance {
+  background: rgba(0, 243, 255, 0.1);
+  color: var(--primary-blue);
+}
+
+.connection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.connection-type {
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.connection-type.wired {
+  background: rgba(0, 243, 255, 0.1);
+  color: var(--primary-blue);
+}
+
+.connection-type.wireless {
+  background: rgba(255, 152, 0, 0.1);
+  color: #FF9800;
+}
+
+.connection-speed {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 1200px) {
+  .table-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+}

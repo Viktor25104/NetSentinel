@@ -1,0 +1,46 @@
+<div class="templates-container">
+  <div class="templates-header">
+    <h2>Шаблоны документов</h2>
+    <div class="category-filters">
+      <button
+        class="category-button"
+        [class.active]="selectedCategory === null"
+        (click)="selectCategory(null)">
+        Все
+      </button>
+      <button
+        *ngFor="let category of categories"
+        class="category-button"
+        [class.active]="selectedCategory === category.value"
+        (click)="selectCategory(category.value)">
+        {{ category.label }}
+      </button>
+    </div>
+  </div>
+
+  <div class="templates-grid">
+    <div
+      *ngFor="let template of filteredTemplates"
+      class="template-card cyber-card"
+      (click)="onSelectTemplate(template)">
+      <div class="template-icon" [class]="template.category">
+        <i>{{ template.icon }}</i>
+      </div>
+      <div class="template-info">
+        <h3>{{ template.name }}</h3>
+        <p>{{ template.description }}</p>
+      </div>
+      <div class="template-category" [class]="template.category">
+        {{ getCategoryLabel(template.category) }}
+      </div>
+    </div>
+
+    <div class="template-card cyber-card add-template" (click)="onCreateTemplate()">
+      <div class="add-template-content">
+        <div class="add-icon">+</div>
+        <h3>Создать новый шаблон</h3>
+        <p>Настройте собственный шаблон документа</p>
+      </div>
+    </div>
+  </div>
+</div>

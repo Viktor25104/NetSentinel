@@ -1,0 +1,68 @@
+<div class="documentation-container">
+  <div class="documentation-header">
+    <h1>Документация и отчеты</h1>
+    <div class="view-selector">
+      <button
+        class="view-button"
+        [class.active]="activeView === 'documents'"
+        (click)="setActiveView('documents')">
+        <i>📄</i> Документы
+      </button>
+      <button
+        class="view-button"
+        [class.active]="activeView === 'reports'"
+        (click)="setActiveView('reports')">
+        <i>📊</i> Отчеты
+      </button>
+    </div>
+  </div>
+
+  <!-- Документы -->
+  <div *ngIf="activeView === 'documents' && !editingDocument">
+    <app-document-templates
+      [templates]="documentTemplates"
+      (selectTemplate)="onSelectTemplate($event)"
+      (createTemplate)="onCreateTemplate()">
+    </app-document-templates>
+
+    <app-document-list
+      [documents]="documents"
+      (selectDocument)="onSelectDocument($event)"
+      (editDocument)="onEditDocument($event)"
+      (exportDocument)="onExportDocument($event)"
+      (deleteDocument)="onDeleteDocument($event)"
+      (createDocument)="onCreateDocument()"
+      (filterChange)="onDocumentFilterChange($event)">
+    </app-document-list>
+  </div>
+
+  <!-- Отчеты -->
+  <div *ngIf="activeView === 'reports'">
+    <app-report-generator
+      [reportTemplates]="reportTemplates"
+      [scheduledReports]="scheduledReports"
+      [reportHistory]="reportHistory"
+      (selectReportTemplate)="onSelectReportTemplate($event)"
+      (createReport)="onCreateReport()"
+      (editReport)="onEditReport($event)"
+      (generateReport)="onGenerateReport($event)"
+      (deleteReport)="onDeleteReport($event)"
+      (viewReport)="onViewReport($event)"
+      (downloadReport)="onDownloadReport($event)"
+      (regenerateReport)="onRegenerateReport($event)">
+    </app-report-generator>
+  </div>
+
+  <!-- Редактор документа -->
+  <div *ngIf="editingDocument && selectedTemplate">
+    <app-document-editor
+      [document]="currentDocument"
+      [template]="selectedTemplate"
+      (save)="onSaveDocument($event)"
+      (publish)="onPublishDocument($event)"
+      (preview)="onPreviewDocument($event)"
+      (export)="onExportDocumentWithFormat($event)"
+      (cancel)="onCancelEdit()">
+    </app-document-editor>
+  </div>
+</div>
