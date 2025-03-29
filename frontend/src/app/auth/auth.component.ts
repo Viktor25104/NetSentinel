@@ -3,6 +3,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import {HttpClient} from '@angular/common/http';
+import {AuthService, UserProfile} from '../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -33,7 +35,9 @@ export class AuthComponent {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private http: HttpClient,
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -45,14 +49,21 @@ export class AuthComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       name: ['', Validators.required],
+      lastName: ['', Validators.required],
+      phone: ['', Validators.required],
 
-      // Шаг 2: Данные компании
+      // Шаг 2: Компания
       companyName: ['', Validators.required],
       position: ['', Validators.required],
+      department: ['', Validators.required],
+      companyWebsite: ['', Validators.required],
 
       // Шаг 3: Адрес
       country: ['', Validators.required],
-      city: ['', Validators.required]
+      city: ['', Validators.required],
+      street: ['', Validators.required],
+      postalCode: ['', Validators.required],
+      office: ['']
     });
   }
 
@@ -93,16 +104,39 @@ export class AuthComponent {
 
   onLogin() {
     if (this.loginForm.valid) {
-      console.log('Login:', this.loginForm.value);
-      this.router.navigate(['/dashboard']);
+      const { email, password } = this.loginForm.value;
+
+      this.authService.login(email, password).subscribe(
+        (user: UserProfile) => {
+          if (user) {
+            this.router.navigate(['/dashboard']);
+          }
+        },
+        (err: any) => {
+          console.error('Login error:', err);
+          alert('Ошибка входа: ' + (err.error?.message || 'Попробуйте снова'));
+        }
+      );
     }
   }
 
   onRegister() {
     if (this.registerForm.valid) {
-      console.log('Register:', this.registerForm.value);
-      this.router.navigate(['/dashboard']);
+      const registerData = this.registerForm.value;
+
+      this.authService.register(registerData).subscribe(
+        (user: UserProfile) => {
+          if (user) {
+            this.router.navigate(['/dashboard']);
+          }
+        },
+        (err: any) => {
+          console.error('Registration error:', err);
+          alert('Ошибка регистрации: ' + (err.error?.message || 'Попробуйте снова'));
+        }
+      );
     }
   }
+
 
 }

@@ -10,11 +10,16 @@ import { AdvicesComponent } from './dashboard/pages/advices/advices.component';
 import { SettingsComponent } from './dashboard/pages/settings/settings.component';
 import { DocumentationComponent } from './dashboard/pages/documentation/documentation.component';
 import { ProfileComponent } from './dashboard/pages/profile/profile.component';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: "", component: HomeComponent },
   { path: "auth", component: AuthComponent },
-  { path: "dashboard", component: DashboardComponent, children: [
+  {
+    path: "dashboard",
+    component: DashboardComponent,
+    canActivate: [authGuard],
+    children: [
       { path: "", component: OverviewComponent },
       { path: "servers", component: ServersComponent },
       { path: "users", component: UsersComponent },
