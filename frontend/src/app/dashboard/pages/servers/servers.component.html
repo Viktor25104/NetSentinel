@@ -5,7 +5,7 @@
 ></app-server-details>
 
 <app-server-table
-  [servers]="servers"
+  *ngIf="servers.length > 0"  [servers]="servers"
   [minimized]="!!selectedServer"
   [selectedServerId]="selectedServer?.id || null"
   (serverSelect)="selectServer($event)"
