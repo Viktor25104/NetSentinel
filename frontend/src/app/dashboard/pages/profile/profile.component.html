@@ -1,8 +1,9 @@
 <div class="profile-page" *ngIf="editableUser">
   <div class="profile-header cyber-card">
     <div class="profile-avatar">
-      <img [src]="editableUser.avatar" [alt]="editableUser.firstName">
-      <button class="change-avatar-btn" (click)="changeAvatar()">
+      <img [src]="avatarUrl" [alt]="editableUser.firstName">
+      <input type="file" (change)="onFileSelected($event)" accept="image/*" hidden #fileInput>
+      <button class="change-avatar-btn" (click)="fileInput.click()">
         <i>📷</i>
       </button>
     </div>

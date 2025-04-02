@@ -88,4 +88,9 @@ public class ServerService {
             serverRepository.save(server);
         });
     }
+
+    public List<Server> getServersByCompanyId(Long companyId) {
+        return serverRepository.findByCompanyId(companyId);
+    }
+
 }

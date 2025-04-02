@@ -5,11 +5,13 @@ import { AuthService, UserProfile } from '../../../core/services/auth/auth.servi
 
 @Component({
   selector: 'app-profile',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent implements OnInit {
+  avatarUrl: string = '';
   editableUser: UserProfile = {
     id: '',
     firstName: '',
@@ -36,6 +38,7 @@ export class ProfileComponent implements OnInit {
     this.authService.user$.subscribe(user => {
       if (user) {
         this.editableUser = { ...user };
+        this.avatarUrl = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`;
       }
     });
   }
@@ -48,19 +51,67 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  changeAvatar() {
-    // Implement avatar change functionality
-    console.log('Change avatar');
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      this.authService.uploadImageToImgBB(file).subscribe({
+        next: res => {
+          const url = res.data.url;
+          this.editableUser.avatar = url;
+          this.avatarUrl = url;
+        },
+        error: err => {
+          console.error('Ошибка загрузки изображения:', err);
+          alert('Ошибка загрузки изображения');
+        }
+      });
+    }
   }
 
   saveChanges() {
-    this.authService.updateProfile(this.editableUser);
+    if (this.avatarUrl !== `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.editableUser.email}`) {
+      this.editableUser.avatar = this.avatarUrl;
+    }
+
+    this.authService.saveUserProfileChanges(this.editableUser).subscribe({
+      next: (res) => {
+        console.log('✅ Сервер ответил:', res);
+
+        this.authService.refreshUserProfile(this.editableUser.id).subscribe({
+          next: (refreshedUser) => {
+            console.log('🔄 Обновлённый профиль:', refreshedUser);
+            alert('Изменения сохранены!');
+          },
+          error: (refreshErr) => {
+            console.error('❌ Ошибка при получении обновлённого профиля:', refreshErr);
+          }
+        });
+      },
+      error: (err) => {
+        console.error('❌ Ошибка при сохранении профиля:', err);
+
+        if (err.status === 200) {
+          console.warn('⚠️ Ответ 200, но Angular думает, что это ошибка — продолжаем как OK.');
+          this.authService.refreshUserProfile(this.editableUser.id).subscribe({
+            next: () => alert('Изменения сохранены! (восстановление после сбоя)'),
+            error: () => alert('Ошибка при получении данных после сохранения')
+          });
+        } else {
+          alert('Ошибка при сохранении профиля');
+        }
+      }
+    });
   }
+
+
+
 
   cancelChanges() {
     this.authService.user$.subscribe(user => {
       if (user) {
         this.editableUser = { ...user };
+        this.avatarUrl = user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`;
       }
     });
   }

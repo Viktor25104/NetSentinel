@@ -35,7 +35,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .userDetailsService(userDetailsService)
-                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 

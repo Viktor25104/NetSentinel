@@ -17,7 +17,8 @@ export class ServersComponent {
   servers: Server[] = [];
 
   constructor(private http: HttpClient) {
-    this.http.get<Server[]>('http://localhost:8080/server/all')
+
+    this.http.get<Server[]>('http://localhost:8080/server/all', { withCredentials: true })
       .pipe(
         catchError(error => {
           console.error('Error fetching servers:', error);

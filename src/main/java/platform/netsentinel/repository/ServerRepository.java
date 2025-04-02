@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import platform.netsentinel.model.Server;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,4 +28,6 @@ public interface ServerRepository extends JpaRepository<Server, Long> {
      * @return an optional server with the given IP address
      */
     Optional<Server> findByIp(String ip);
+    List<Server> findByCompanyId(Long companyId);
+
 }
