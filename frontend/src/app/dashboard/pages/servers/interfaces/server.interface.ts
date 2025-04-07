@@ -5,10 +5,10 @@ export interface Server {
   status: 'online' | 'offline' | 'maintenance';
   type: string;
   location: string;
-  uptime: string;
-  cpu: number;
-  ram: number;
-  disk: number;
+  lastPing: string;
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
   network: number;
 }
 

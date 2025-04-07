@@ -43,7 +43,7 @@ public class WebSocketRequestController {
      * @param dataType type of data requested (e.g., cpu, ram)
      * @return response from the agent or error message
      */
-    private String requestAgentData(Long serverId, String dataType) {
+    public String requestAgentData(Long serverId, String dataType) {
         String requestKey = null;
         try {
             Optional<Server> serverOpt = serverRepository.findById(serverId);
@@ -123,6 +123,11 @@ public class WebSocketRequestController {
          */
         public AgentApiController(WebSocketRequestController wsController) {
             this.wsController = wsController;
+        }
+
+        @GetMapping("/{serverId}/info")
+        public String getServerInfo(@PathVariable Long serverId) {
+            return wsController.requestAgentData(serverId, "info");
         }
 
         @GetMapping("/{serverId}/cpu")
