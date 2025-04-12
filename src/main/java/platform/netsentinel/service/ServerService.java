@@ -1,30 +1,30 @@
 package platform.netsentinel.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import platform.netsentinel.controller.WebSocketRequestController;
-import platform.netsentinel.dto.ServerInfo;
+import platform.netsentinel.dto.agent.ServerInfoDto;
 import platform.netsentinel.model.Server;
 import platform.netsentinel.repository.ServerRepository;
+import platform.netsentinel.websocket.service.AgentRequestService;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Service class for managing server registration, updates, and status.
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class ServerService {
 
     private final ServerRepository serverRepository;
-    private final WebSocketRequestController wsController;
-
-    public ServerService(ServerRepository serverRepository, WebSocketRequestController wsController) {
-        this.serverRepository = serverRepository;
-        this.wsController = wsController;
-    }
+    private final AgentRequestService agentRequestService;
 
     /**
      * Retrieve all registered servers.
@@ -38,82 +38,87 @@ public class ServerService {
     /**
      * Register a new server or update an existing one based on sessionId or IP address.
      *
-     * @param server the server object received from the agent
+     * @param dto the server object received from the agent
      * @return assigned sessionId for the server
      */
     @Transactional
-    public String registerOrUpdateServer(Server server) {
-        Optional<Server> existingServer = serverRepository.findBySessionId(server.getSessionId());
-
-        if (existingServer.isPresent()) {
-            Server existing = existingServer.get();
-            existing.setLastPing(LocalDateTime.now());
-            existing.setStatus("online");
-            existing.setCpuUsage(server.getCpuUsage());
-            existing.setMemoryUsage(server.getMemoryUsage());
-            existing.setDiskUsage(server.getDiskUsage());
-            existing.setUpTime(server.getUpTime());
-
-            serverRepository.save(existing);
-            return existing.getSessionId();
-        }
-
-        Optional<Server> serverByIp = serverRepository.findByIp(server.getIp());
-        if (serverByIp.isPresent()) {
-            Server existing = serverByIp.get();
-            String newSessionId = UUID.randomUUID().toString();
-            existing.setSessionId(newSessionId);
-            existing.setLastPing(LocalDateTime.now());
-            existing.setStatus("online");
-
-            serverRepository.save(existing);
-            return newSessionId;
-        }
-
-        String sessionId = UUID.randomUUID().toString();
-        server.setSessionId(sessionId);
-        server.setLastPing(LocalDateTime.now());
-        server.setStatus("online");
+    public String registerOrUpdateServer(ServerInfoDto dto) {
+        Server server = new Server();
+        server.setName(dto.name());
+        server.setIp(dto.ip());
+        server.setType(dto.type());
+        server.setStatus(dto.status());
+        server.setLocation(dto.location());
+        server.setUpTime(dto.uptime() + "s");
+        server.setCpuUsage(dto.cpuUsage());
+        server.setMemoryUsage(dto.memoryUsage());
+        server.setDiskUsage(dto.diskUsage());
+        server.setCompanyId(dto.companyId());
 
         serverRepository.save(server);
-        return sessionId;
+        return dto.sessionId();
+
     }
 
-    @Scheduled(fixedRate = 100000)
+
+    @Scheduled(fixedRate = 100_000)
     public void updaterMetrics() {
-        List<Server> servers = getServers();
         ObjectMapper mapper = new ObjectMapper();
 
-        for (Server server : servers) {
-            if ("warning".equals(server.getStatus())) {
-                continue;
-            }
+        getServers().parallelStream()
+                .filter(server -> !"warning".equals(server.getStatus()))
+                .forEach(server -> {
+                    try {
+                        Object raw = agentRequestService
+                                .request(server.getSessionId(), "info")
+                                .get(10, TimeUnit.SECONDS);
 
-            String response = wsController.requestAgentData(server.getId(), "info");
-            try {
-                ServerInfo info = mapper.readValue(response, ServerInfo.class);
+                        ServerInfoDto info = mapper.convertValue(raw, ServerInfoDto.class);
 
-                Server currentServer = serverRepository.findById(server.getId())
-                        .orElseThrow(() -> new Exception("Server not found"));
-                currentServer.setLastPing(LocalDateTime.now());
-                currentServer.setStatus("online");
-                currentServer.setCpuUsage(info.getCpuUsage());
-                currentServer.setMemoryUsage(info.getMemoryUsage());
-                currentServer.setDiskUsage(info.getDiskUsage());
+                        server.setLastPing(LocalDateTime.now());
+                        server.setStatus(info.status());
+                        server.setCpuUsage(info.cpuUsage());
+                        server.setMemoryUsage(info.memoryUsage());
+                        server.setDiskUsage(info.diskUsage());
 
-                serverRepository.save(currentServer);
-            } catch (Exception e) {
-                System.err.println("Ошибка при обновлении метрик для сервера с ID " + server.getId() + ": " + e.getMessage());
-                e.printStackTrace();
+                    } catch (Exception e) {
+                        server.setStatus("offline");
+                        server.setLastPing(LocalDateTime.now());
 
-                Optional<Server> currentServerOpt = serverRepository.findById(server.getId());
-                if (currentServerOpt.isPresent()) {
-                    Server currentServer = currentServerOpt.get();
-                    currentServer.setStatus("offline");
-                    currentServer.setLastPing(LocalDateTime.now());
-                    serverRepository.save(currentServer);
-                }
-            }
+                        System.err.println("❌ Ошибка получения метрик: " + server.getId() + " → " + e.getMessage());
+                    }
+
+                    serverRepository.save(server);
+                });
+    }
+
+
+    /**
+     * Обновляет статус и основные метрики сервера по sessionId.
+     *
+     * @param info объект с новыми данными
+     */
+    @Transactional
+    public void updateServerInfo(ServerInfoDto info) {
+        Optional<Server> optional = serverRepository.findBySessionId(info.sessionId());
+
+        if (optional.isPresent()) {
+            Server server = optional.get();
+            server.setLastPing(LocalDateTime.now());
+
+            server.setName(info.name());
+            server.setIp(info.ip());
+            server.setType(info.type());
+            server.setStatus(info.status());
+            server.setLocation(info.location());
+            server.setUpTime(info.uptime() + "s");
+            server.setCpuUsage(info.cpuUsage());
+            server.setMemoryUsage(info.memoryUsage());
+            server.setDiskUsage(info.diskUsage());
+            server.setCompanyId(info.companyId());
+            serverRepository.save(server);
+        } else {
+            log.warn("⚠️ Сервер с sessionId {} не найден", info.sessionId());
         }
     }
 

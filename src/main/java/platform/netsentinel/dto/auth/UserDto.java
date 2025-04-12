@@ -1,4 +1,4 @@
-package platform.netsentinel.dto;
+package platform.netsentinel.dto.auth;
 
 import lombok.Getter;
 import lombok.Setter;

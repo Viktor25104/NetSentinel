@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import platform.netsentinel.dto.UserDto;
+import platform.netsentinel.dto.auth.UserDto;
 import platform.netsentinel.model.Company;
 import platform.netsentinel.model.Role;
 import platform.netsentinel.model.User;

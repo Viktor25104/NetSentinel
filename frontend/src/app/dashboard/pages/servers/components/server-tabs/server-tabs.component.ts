@@ -1,15 +1,19 @@
-import { Component, Input } from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Server } from '../../interfaces/server.interface';
+import { AutorunService, PortInfo, ProcessInfo, Server } from '../../interfaces/server.interface';
+import * as http from 'node:http';
+import {HttpClient} from '@angular/common/http';
+import {interval, Subscription} from 'rxjs';
+import {FormatBytesPipe} from '../../../../../pipes/formatBytes/format-bytes.pipe';
 
 @Component({
   selector: 'app-server-tabs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormatBytesPipe],
   template: `
     <div class="server-tabs">
       <div class="tabs-header">
-        <button class="tab-button" 
+        <button class="tab-button"
                 *ngFor="let tab of tabs"
                 [class.active]="activeTab === tab.id"
                 (click)="setActiveTab(tab.id)">
@@ -21,24 +25,24 @@ import { Server } from '../../interfaces/server.interface';
         <div *ngSwitchCase="'processes'" class="processes-tab">
           <table class="cyber-table">
             <thead>
-              <tr>
-                <th>PID</th>
-                <th>Процесс</th>
-                <th>CPU</th>
-                <th>RAM</th>
-                <th>Действия</th>
-              </tr>
+            <tr>
+              <th>PID</th>
+              <th>Процесс</th>
+              <th>CPU</th>
+              <th>RAM</th>
+              <th>Действия</th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let process of processes">
-                <td>{{ process.pid }}</td>
-                <td>{{ process.name }}</td>
-                <td>{{ process.cpu }}%</td>
-                <td>{{ process.ram }}MB</td>
-                <td>
-                  <button class="cyber-button small danger">Завершить</button>
-                </td>
-              </tr>
+            <tr *ngFor="let process of processes">
+              <td>{{ process.pid }}</td>
+              <td>{{ process.name }}</td>
+              <td>{{ process.cpu }}%</td>
+              <td>{{ process.memoryUsage | formatBytes }}</td>
+              <td>
+                <button class="cyber-button small danger">Завершить</button>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -46,28 +50,28 @@ import { Server } from '../../interfaces/server.interface';
         <div *ngSwitchCase="'autorun'" class="autorun-tab">
           <table class="cyber-table">
             <thead>
-              <tr>
-                <th>Служба</th>
-                <th>Статус</th>
-                <th>Тип</th>
-                <th>Действия</th>
-              </tr>
+            <tr>
+              <th>Служба</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let service of autorunServices">
-                <td>{{ service.name }}</td>
-                <td>
-                  <span class="status-badge" [class]="service.status">
-                    {{ service.status }}
+            <tr *ngFor="let service of autorunServices">
+              <td>{{ service.name }}</td>
+              <td>
+                  <span
+                    class="status-badge"
+                    [ngClass]="service.enabled ? 'running' : 'stopped'">
+                    {{ service.enabled ? 'running' : 'stopped' }}
                   </span>
-                </td>
-                <td>{{ service.type }}</td>
-                <td>
-                  <button class="cyber-button small">
-                    {{ service.status === 'running' ? 'Остановить' : 'Запустить' }}
-                  </button>
-                </td>
-              </tr>
+              </td>
+              <td>
+                <button class="cyber-button small">
+                  {{ service.enabled ? 'Остановить' : 'Запустить' }}
+                </button>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -85,10 +89,10 @@ import { Server } from '../../interfaces/server.interface';
               </div>
               <div class="terminal-output">
                 total 32
-                drwxr-xr-x  5 root root 4096 Feb 20 10:24 .
+                drwxr-xr-x 5 root root 4096 Feb 20 10:24 .
                 drwxr-xr-x 22 root root 4096 Feb 20 10:24 ..
-                drwxr-xr-x  3 root root 4096 Feb 20 10:24 etc
-                drwxr-xr-x  2 root root 4096 Feb 20 10:24 var
+                drwxr-xr-x 3 root root 4096 Feb 20 10:24 etc
+                drwxr-xr-x 2 root root 4096 Feb 20 10:24 var
               </div>
               <div class="terminal-input">
                 <span class="prompt">root&#64;server:~$</span>
@@ -104,24 +108,24 @@ import { Server } from '../../interfaces/server.interface';
               <h3>Сетевые порты</h3>
               <table class="cyber-table">
                 <thead>
-                  <tr>
-                    <th>Порт</th>
-                    <th>Протокол</th>
-                    <th>Сервис</th>
-                    <th>Состояние</th>
-                  </tr>
+                <tr>
+                  <th>Порт</th>
+                  <th>Протокол</th>
+                  <th>Сервис</th>
+                  <th>Состояние</th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let port of ports">
-                    <td>{{ port.number }}</td>
-                    <td>{{ port.protocol }}</td>
-                    <td>{{ port.service }}</td>
-                    <td>
+                <tr *ngFor="let port of ports">
+                  <td>{{ port.port }}</td>
+                  <td>{{ port.protocol }}</td>
+                  <td>{{ port.service }}</td>
+                  <td>
                       <span class="status-badge" [class]="port.state">
                         {{ port.state }}
                       </span>
-                    </td>
-                  </tr>
+                  </td>
+                </tr>
                 </tbody>
               </table>
             </div>
@@ -141,28 +145,28 @@ import { Server } from '../../interfaces/server.interface';
                   </button>
                 </div>
                 <div class="packets-list">
-                  <table class="cyber-table">
-                    <thead>
-                      <tr>
-                        <th>Время</th>
-                        <th>Источник</th>
-                        <th>Назначение</th>
-                        <th>Протокол</th>
-                        <th>Размер</th>
-                        <th>Информация</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let packet of networkPackets">
-                        <td>{{ packet.timestamp }}</td>
-                        <td>{{ packet.source }}</td>
-                        <td>{{ packet.destination }}</td>
-                        <td>{{ packet.protocol }}</td>
-                        <td>{{ packet.size }} bytes</td>
-                        <td>{{ packet.info }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+<!--                  <table class="cyber-table">-->
+<!--                    <thead>-->
+<!--                    <tr>-->
+<!--                      <th>Время</th>-->
+<!--                      <th>Источник</th>-->
+<!--                      <th>Назначение</th>-->
+<!--                      <th>Протокол</th>-->
+<!--                      <th>Размер</th>-->
+<!--                      <th>Информация</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody>-->
+<!--                    <tr *ngFor="let packet of networkPackets">-->
+<!--                      <td>{{ packet.timestamp }}</td>-->
+<!--                      <td>{{ packet.source }}</td>-->
+<!--                      <td>{{ packet.destination }}</td>-->
+<!--                      <td>{{ packet.protocol }}</td>-->
+<!--                      <td>{{ packet.size }} bytes</td>-->
+<!--                      <td>{{ packet.info }}</td>-->
+<!--                    </tr>-->
+<!--                    </tbody>-->
+<!--                  </table>-->
                 </div>
               </div>
             </div>
@@ -335,11 +339,11 @@ import { Server } from '../../interfaces/server.interface';
     }
   `]
 })
-export class ServerTabsComponent {
+export class ServerTabsComponent implements OnInit, OnDestroy {
   @Input() server!: Server;
 
   activeTab = 'processes';
-  
+
   tabs = [
     { id: 'processes', label: 'Процессы' },
     { id: 'autorun', label: 'Автозагрузка' },
@@ -347,45 +351,76 @@ export class ServerTabsComponent {
     { id: 'network', label: 'Сеть' }
   ];
 
-  // Демо-данные
-  processes = [
-    { pid: 1, name: 'systemd', cpu: 0.5, ram: 128 },
-    { pid: 854, name: 'nginx', cpu: 2.1, ram: 256 },
-    { pid: 1256, name: 'postgres', cpu: 4.5, ram: 512 }
-  ];
+  processes: ProcessInfo[] = [];
+  autorunServices: AutorunService[] = [];
+  ports: PortInfo[] = [];
 
-  autorunServices = [
-    { name: 'nginx', status: 'running', type: 'system' },
-    { name: 'postgresql', status: 'running', type: 'system' },
-    { name: 'redis', status: 'stopped', type: 'system' }
-  ];
+  loading: boolean = false;
 
-  ports = [
-    { number: 80, protocol: 'TCP', service: 'HTTP', state: 'open' },
-    { number: 443, protocol: 'TCP', service: 'HTTPS', state: 'open' },
-    { number: 5432, protocol: 'TCP', service: 'PostgreSQL', state: 'open' }
-  ];
+  private subscriptions: { [key: string]: Subscription } = {};
 
-  networkPackets = [
-    {
-      timestamp: '10:15:23',
-      source: '192.168.1.100',
-      destination: '8.8.8.8',
-      protocol: 'DNS',
-      size: 64,
-      info: 'Standard query'
-    },
-    {
-      timestamp: '10:15:24',
-      source: '8.8.8.8',
-      destination: '192.168.1.100',
-      protocol: 'DNS',
-      size: 128,
-      info: 'Standard query response'
-    }
-  ];
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.setActiveTab(this.activeTab);
+  }
+
+  ngOnDestroy(): void {
+    Object.values(this.subscriptions).forEach(sub => sub.unsubscribe());
+  }
 
   setActiveTab(tabId: string) {
     this.activeTab = tabId;
+    this.stopAllIntervals();
+
+    this.loadData(tabId);
+
+    // автообновление
+    let intervalTime = 0;
+    switch (tabId) {
+      case 'processes':
+        intervalTime = 5000; break;
+      case 'autorun':
+        intervalTime = 30000; break;
+      case 'network':
+        intervalTime = 10000; break;
+    }
+
+    if (intervalTime) {
+      this.subscriptions[tabId] = interval(intervalTime).subscribe(() => this.loadData(tabId));
+    }
   }
+
+  private stopAllIntervals() {
+    for (let key in this.subscriptions) {
+      this.subscriptions[key].unsubscribe();
+    }
+    this.subscriptions = {};
+  }
+
+  private loadData(tab: string) {
+    const id = this.server.id;
+    this.loading = true;
+
+    const endpointMap: { [key: string]: string } = {
+      'processes': 'process',
+      'autorun': 'startup',
+      'network': 'ports'
+    };
+
+    const endpoint = endpointMap[tab];
+    if (!endpoint) return;
+
+    this.http.get(`http://localhost:8080/api/agent/${id}/${endpoint}`)
+      .subscribe({
+        next: data => {
+          if (tab === 'processes') this.processes = data as ProcessInfo[];
+          if (tab === 'autorun') this.autorunServices = data as AutorunService[];
+          if (tab === 'network') this.ports = data as PortInfo[];
+        },
+        error: err => console.error(`❌ Ошибка загрузки ${tab}`, err),
+        complete: () => this.loading = false
+      });
+  }
+
 }

@@ -1,13 +1,25 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+  OnDestroy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Server } from '../../interfaces/server.interface';
-import {HttpClient} from '@angular/common/http';
-import {forkJoin, interval, Subscription} from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, interval, Subscription } from 'rxjs';
+import { Server, CpuInfoDto, RamInfoDto, DiskInfoDto, NetworkInterfaceDto } from '../../interfaces/server.interface';
+import { PrettyBytesPipe } from '../../../../../pipes/pretty-bytes/pretty-bytes.pipe';
+import { CleanCpuNamePipe } from '../../../../../pipes/cleanCpuName/clean-cpu-name.pipe';
+import {FormatBytesPipe} from '../../../../../pipes/formatBytes/format-bytes.pipe';
+
 
 @Component({
   selector: 'app-server-metrics',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PrettyBytesPipe, CleanCpuNamePipe, FormatBytesPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="metrics-grid">
       <div class="cyber-card metric-card">
@@ -23,12 +35,12 @@ import {forkJoin, interval, Subscription} from 'rxjs';
         </div>
         <div class="metric-details">
           <div class="detail-item">
-            <span>Ядра:</span>
-            <span>{{ coreCount }}</span>
+            <span>Процессор: </span>
+            <span>{{ cpuInfo?.name | cleanCpuName }}</span>
           </div>
           <div class="detail-item">
-            <span>Частота:</span>
-            <span>{{ frequency }}</span>
+            <span>Ядер (физ/лог): </span>
+            <span>{{ cpuInfo?.physicalCores }}/{{ cpuInfo?.logicalCores }}</span>
           </div>
         </div>
       </div>
@@ -48,11 +60,11 @@ import {forkJoin, interval, Subscription} from 'rxjs';
         <div class="metric-details">
           <div class="detail-item">
             <span>Всего:</span>
-            <span>{{ ramInfo?.total }}</span>
+            <span>{{ ramInfo?.totalBytes | formatBytes }}</span>
           </div>
           <div class="detail-item">
             <span>Доступно:</span>
-            <span>{{ ramInfo?.available }} GB</span>
+            <span>{{ ramInfo?.freeBytes | formatBytes }}</span>
           </div>
         </div>
       </div>
@@ -62,33 +74,33 @@ import {forkJoin, interval, Subscription} from 'rxjs';
         <div class="metric-chart">
           <div class="chart-placeholder">
             <div class="usage-indicator">
-              <div class="usage-circle" [class.warning]="server.diskUsage > 70"
-                   [class.critical]="server.diskUsage > 90">
-                <div class="usage-value">{{ server.diskUsage }}%</div>
+              <div
+                class="usage-circle"
+                [class.warning]="maxDiskUsage > 70"
+                [class.critical]="maxDiskUsage > 90"
+              >
+                <div class="usage-value">{{ maxDiskUsage | number: '1.0-0' }}%</div>
               </div>
             </div>
           </div>
         </div>
         <div class="metric-details">
-          <div class="detail-item">
-            <span>Всего:</span>
-            <span>{{ diskInfo?.total }}</span>
-          </div>
-          <div class="detail-item">
-            <span>Доступно:</span>
-            <span>{{ diskInfo?.available }}</span>
+          <div class="detail-item" *ngFor="let disk of topDisks">
+            <span>{{ disk.name }} ({{ disk.type }})</span>
+            <span>{{ disk.total | formatBytes }} • {{ disk.usedPercent | number: '1.0-0' }}%</span>
           </div>
         </div>
       </div>
 
-      <div class="cyber-card metric-card">
+      <div class="cyber-card metric-card" *ngIf="networkInfo; else noNetwork">
         <h3>Сеть</h3>
         <div class="metric-chart">
           <div class="chart-placeholder">
             <div class="usage-indicator">
-              <div class="usage-circle" [class.warning]="networkInfo!.networkLoad > 70"
-                   [class.critical]="networkInfo!.networkLoad > 90">
-                <div class="usage-value">{{ networkInfo!.networkLoad }}%</div>
+              <div class="usage-circle"
+                   [class.warning]="networkInfo.networkLoad! > 70"
+                   [class.critical]="networkInfo.networkLoad! > 90">
+                <div class="usage-value">{{ networkInfo.networkLoad }}%</div>
               </div>
             </div>
           </div>
@@ -96,14 +108,21 @@ import {forkJoin, interval, Subscription} from 'rxjs';
         <div class="metric-details">
           <div class="detail-item">
             <span>Входящий:</span>
-            <span>{{ networkInfo?.incomingTraffic }} КБ/с</span>
+            <span>{{ networkInfo.incomingTraffic | prettyBytes : '/сек' }}</span>
           </div>
           <div class="detail-item">
             <span>Исходящий:</span>
-            <span>{{ networkInfo?.outgoingTraffic }} КБ/с</span>
+            <span>{{ networkInfo.outgoingTraffic | prettyBytes : '/сек' }}</span>
           </div>
         </div>
       </div>
+
+      <ng-template #noNetwork>
+        <div class="cyber-card metric-card">
+          <h3>Сеть</h3>
+          <p>Нет активного сетевого адаптера</p>
+        </div>
+      </ng-template>
     </div>
   `,
   styles: [`
@@ -183,32 +202,44 @@ import {forkJoin, interval, Subscription} from 'rxjs';
       color: rgba(255, 255, 255, 0.7);
       font-size: 0.9rem;
     }
+    .detail-item span:first-child {
+      margin-right: 0.5rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
     .detail-item span:last-child {
       color: #fff;
       font-weight: 500;
+      word-break: break-word;
     }
   `]
 })
 export class ServerMetricsComponent implements OnInit, OnDestroy {
+
   @Input() server!: Server;
 
-  coreCount!: number;
-  frequency!: string;
-  ramInfo: { total: string, usedPercentage: string, available: string, used: string } | null = null;
-  diskInfo: { total: string, available: string, used: string, usedPercentage: string } | null = null;
-  networkInfo: { networkLoad: number, incomingTraffic: string, outgoingTraffic: string } | null = null;
+  cpuInfo: CpuInfoDto | null = null;
+  ramInfo: RamInfoDto | null = null;
+  diskInfo: DiskInfoDto[] = [];
+  networkInfo: NetworkInterfaceDto | null = null;
+
+  maxDiskUsage: number = 0;
+  topDisks: { name: string, type: string, total: number, usedPercent: number }[] = [];
 
   private updateSubscription!: Subscription;
 
-  constructor(private cdr: ChangeDetectorRef, private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    // Обновление раз в час (3600000 мс)
-    this.updateSubscription = interval(3600000).subscribe(() => {
+    this.updateMetrics();
+
+    this.updateSubscription = interval(60 * 60 * 1000).subscribe(() => {
       this.updateMetrics();
     });
-    // Первоначальное обновление
-    this.updateMetrics();
   }
 
   ngOnDestroy(): void {
@@ -216,188 +247,55 @@ export class ServerMetricsComponent implements OnInit, OnDestroy {
   }
 
   private updateMetrics(): void {
-    const cpuUrl = `http://localhost:8080/api/agent/${this.server.id}/cpu`;
-    const ramUrl = `http://localhost:8080/api/agent/${this.server.id}/ram`;
-    const diskUrl = `http://localhost:8080/api/agent/${this.server.id}/disk`;
-    const networkUrl = `http://localhost:8080/api/agent/${this.server.id}/network`;
-
+    const base = `http://localhost:8080/api/agent/${this.server.id}`;
     forkJoin({
-      cpu: this.http.get(cpuUrl, { withCredentials: true, responseType: 'text' }),
-      ram: this.http.get(ramUrl, { withCredentials: true, responseType: 'text' }),
-      disk: this.http.get(diskUrl, { withCredentials: true, responseType: 'text' }),
-      network: this.http.get(networkUrl, { withCredentials: true, responseType: 'text' })
+      cpu: this.http.get<CpuInfoDto>(`${base}/cpu`, { withCredentials: true }),
+      ram: this.http.get<RamInfoDto>(`${base}/ram`, { withCredentials: true }),
+      disk: this.http.get<DiskInfoDto>(`${base}/disk`, { withCredentials: true }),
+      network: this.http.get<NetworkInterfaceDto[]>(`${base}/network`, { withCredentials: true })
     }).subscribe({
       next: ({ cpu, ram, disk, network }) => {
-        const cpuData = this.parseCpuInfo(cpu);
-        this.coreCount = Number(cpuData.coreCount);
-        this.frequency = cpuData.frequency;
+        this.cpuInfo = cpu;
+        this.ramInfo = ram;
+        this.diskInfo = Array.isArray(disk) ? disk : [disk];
+        this.networkInfo = this.selectActiveInterface(network);
 
-        this.ramInfo = this.parseRamInfo(ram);
-        this.diskInfo = this.parseDiskInfo(disk);
-        this.networkInfo = this.parseNetworkInfo(network);
+        this.maxDiskUsage = Math.max(...this.diskInfo.map(d => d.usedPercent));
+        this.topDisks = this.diskInfo
+          .sort((a, b) => b.usedPercent - a.usedPercent)
+          .slice(0, 3)
+          .map(d => ({
+            name: d.mount,
+            type: d.type,
+            total: d.totalBytes,
+            usedPercent: d.usedPercent
+          }));
 
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: error => {
-        console.error('Error updating metrics:', error);
+        console.error('❌ Ошибка при загрузке метрик:', error);
       }
     });
   }
 
-  /**
-   * Парсит строку вида:
-   * "{coreCount=28, frequency=3.418 GHz, load=4.95%}"
-   * и возвращает объект с полями coreCount и frequency.
-   */
-  private parseCpuInfo(response: string): { coreCount: string, frequency: string } {
-    response = response.trim();
-    if (response.startsWith('{') && response.endsWith('}')) {
-      response = response.substring(1, response.length - 1);
-    }
-    const result: any = {};
-    const pairs = response.split(',');
-    pairs.forEach(pair => {
-      const parts = pair.split('=');
-      if (parts.length >= 2) {
-        const key = parts[0].trim();
-        const value = parts.slice(1).join('=').trim();
-        result[key] = value;
-      }
-    });
+  private selectActiveInterface(interfaces: NetworkInterfaceDto[]): NetworkInterfaceDto | null {
+    const active = interfaces
+      .filter(i => i.speed > 0 && (i.bytesRecv > 0 || i.bytesSent > 0))
+      .sort((a, b) => (b.bytesRecv + b.bytesSent) - (a.bytesRecv + a.bytesSent))[0];
+
+    if (!active) return null;
+
+    const load = active.speed > 0
+      ? ((active.bytesRecv + active.bytesSent) / active.speed) * 100
+      : 0;
+
     return {
-      coreCount: result['coreCount'] || '0',
-      frequency: result['frequency'] || ''
+      ...active,
+      networkLoad: Math.min(100, Math.round(load)),
+      incomingTraffic: Math.round(active.bytesRecv / 1024),
+      outgoingTraffic: Math.round(active.bytesSent / 1024)
     };
   }
 
-  /**
-   * Парсит строку вида:
-   * "{total=31,77 ГБ, usedPercentage=51,29%, available=15,47 ГБ, used=16,29 ГБ}"
-   * и возвращает объект с соответствующими полями.
-   */
-  private parseRamInfo(response: string): { total: string, usedPercentage: string, available: string, used: string } {
-    response = response.trim();
-    if (response.startsWith('{') && response.endsWith('}')) {
-      response = response.substring(1, response.length - 1);
-    }
-    const result: any = {};
-    const pairs = response.split(',');
-    pairs.forEach(pair => {
-      const parts = pair.split('=');
-      if (parts.length >= 2) {
-        const key = parts[0].trim();
-        const value = parts.slice(1).join('=').trim();
-        result[key] = value;
-      }
-    });
-    return {
-      total: result['total'] || '',
-      usedPercentage: result['usedPercentage'] || '',
-      available: result['available'] || '',
-      used: result['used'] || ''
-    };
-  }
-
-  /**
-   * Парсит строку, содержащую информацию о дисках (могут быть несколько записей),
-   * агрегирует данные по всем дискам и возвращает объект:
-   * { total: "X GB", available: "Y GB", used: "Z GB", usedPercentage: "W%" }
-   */
-  private parseDiskInfo(response: string): { total: string, available: string, used: string, usedPercentage: string } {
-    response = response.trim();
-    if (response.startsWith('[') && response.endsWith(']')) {
-      response = response.substring(1, response.length - 1);
-    }
-
-    // Разбиваем на записи дисков, предполагаем разделение "},"
-    const entries = response.split('},').map(entry => {
-      entry = entry.trim();
-      if (!entry.endsWith('}')) {
-        entry += '}';
-      }
-      return entry;
-    });
-
-    let totalSum = 0;
-    let availableSum = 0;
-
-    entries.forEach(entry => {
-      entry = entry.trim();
-      if (entry.startsWith('{') && entry.endsWith('}')) {
-        entry = entry.substring(1, entry.length - 1);
-      }
-      const pairs = entry.split(',');
-      const diskData: { [key: string]: string } = {};
-      pairs.forEach(pair => {
-        const parts = pair.split('=');
-        if (parts.length >= 2) {
-          const key = parts[0].trim();
-          const value = parts.slice(1).join('=').trim();
-          diskData[key] = value;
-        }
-      });
-
-      if (diskData['total']) {
-        let totalStr = diskData['total'].replace('ГБ', '').replace('GB', '').trim().replace(',', '.');
-        const totalVal = parseFloat(totalStr);
-        if (!isNaN(totalVal)) {
-          totalSum += totalVal;
-        }
-      }
-
-      if (diskData['available']) {
-        let availableStr = diskData['available'].replace('ГБ', '').replace('GB', '').trim().replace(',', '.');
-        const availableVal = parseFloat(availableStr);
-        if (!isNaN(availableVal)) {
-          availableSum += availableVal;
-        }
-      }
-    });
-
-    const usedSum = totalSum - availableSum;
-    const usedPercentage = totalSum > 0 ? (usedSum / totalSum) * 100 : 0;
-
-    return {
-      total: totalSum.toFixed(1) + " GB",
-      available: availableSum.toFixed(1) + " GB",
-      used: usedSum.toFixed(1) + " GB",
-      usedPercentage: usedPercentage.toFixed(1) + "%"
-    };
-  }
-
-  /**
-   * Парсит строку вида:
-   * "{networkLoad=0%, downloadSpeed=26,4 КБ/с, ping=0,0 мс, peakSpeed=1,5 Мбит/с, uploadSpeed=22,8 КБ/с, maxSpeed=100,0 Мбит/с, outgoingTraffic=22,8 КБ/с, incomingTraffic=26,4 КБ/с}"
-   * и возвращает объект с полями incomingTraffic и outgoingTraffic.
-   */
-  private parseNetworkInfo(response: string): { networkLoad: number, incomingTraffic: string, outgoingTraffic: string } {
-    response = response.trim();
-    if (response.startsWith('{') && response.endsWith('}')) {
-      response = response.substring(1, response.length - 1);
-    }
-    const result: any = {};
-    const pairs = response.split(',');
-    pairs.forEach(pair => {
-      const parts = pair.split('=');
-      if (parts.length >= 2) {
-        const key = parts[0].trim();
-        const value = parts.slice(1).join('=').trim();
-        result[key] = value;
-      }
-    });
-
-    // Преобразуем networkLoad в число, удалив символ "%"
-    const networkLoadStr = result['networkLoad'] || '0%';
-    const networkLoad = parseInt(networkLoadStr.replace('%', '').trim(), 10);
-
-    return {
-      networkLoad: isNaN(networkLoad) ? 0 : networkLoad,
-      outgoingTraffic: result['outgoingTraffic'] || '',
-      incomingTraffic: result['incomingTraffic'] || ''
-    };
-  }
-
-  refresh() {
-    this.cdr.detectChanges();
-  }
 }

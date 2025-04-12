@@ -1,13 +1,14 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter, SimpleChanges, OnChanges} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Server } from '../../interfaces/server.interface';
-import { RelativeTimePipe } from '../../../../../pipes/relative-time.pipe';
+import { RelativeTimePipe } from '../../../../../pipes/relative-time/relative-time.pipe';
+import {HumanStatusPipe} from '../../../../../pipes/humanStatus/human-status.pipe';
 
 @Component({
   selector: 'app-server-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, HumanStatusPipe],
   template: `
     <div class="servers-table-container" [class.minimized]="minimized">
       <div class="table-header">
@@ -48,19 +49,19 @@ import { RelativeTimePipe } from '../../../../../pipes/relative-time.pipe';
           <th>IP</th>
           <th>Тип</th>
           <th>Локация</th>
-          <th>Загрузка CPU</th>
-          <th>RAM</th>
-          <th>Диск</th>
+          <th (click)="toggleSort('cpuUsage')">Загрузка CPU</th>
+          <th (click)="toggleSort('memoryUsage')">RAM</th>
+          <th (click)="toggleSort('diskUsage')">Диск</th>
           <th>Аптайм</th>
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let server of filteredServers; trackBy: trackByServerId"
+        <tr *ngFor="let server of displayedServers; trackBy: trackByServerId"
             (click)="onServerSelect(server)"
             [class.selected]="selectedServerId === server.id">
           <td>
               <span class="status-indicator" [class]="server.status">
-                {{ server.status }}
+                {{ server.status | humanStatus }}
               </span>
           </td>
           <td>{{ server.name }}</td>
@@ -205,41 +206,73 @@ import { RelativeTimePipe } from '../../../../../pipes/relative-time.pipe';
     }
   `]
 })
-export class ServerTableComponent {
+export class ServerTableComponent implements OnChanges {
+
   @Input() servers: Server[] = [];
   @Input() minimized = false;
-  @Input() selectedServerId: string | null = null;
+  @Input() selectedServerId: number | null = null;
   @Output() serverSelect = new EventEmitter<Server>();
 
   statusFilter = '';
   locationFilter = '';
   searchQuery = '';
+  sortField: keyof Server | null = null;
+  sortDirection: 'asc' | 'desc' = 'asc';
 
-  get uniqueLocations() {
-    return [...new Set(this.servers.map(server => server.location))];
+  displayedServers: Server[] = [];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['servers']) {
+      this.updateDisplayedServers();
+    }
   }
 
-  get filteredServers() {
-    return this.servers.filter(server => {
+  get uniqueLocations(): string[] {
+    return [...new Set(this.servers.map(s => s.location))];
+  }
+
+  onFiltersChange(): void {
+    this.updateDisplayedServers();
+  }
+
+  toggleSort(field: keyof Server): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.updateDisplayedServers();
+  }
+
+  updateDisplayedServers(): void {
+    let filtered = this.servers.filter(server => {
       const matchesSearch =
+        !this.searchQuery ||
         server.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         server.ip.includes(this.searchQuery);
       const matchesStatus = !this.statusFilter || server.status === this.statusFilter;
       const matchesLocation = !this.locationFilter || server.location === this.locationFilter;
       return matchesSearch && matchesStatus && matchesLocation;
     });
+
+    if (this.sortField) {
+      filtered = filtered.sort((a, b) => {
+        const aValue = a[this.sortField!] ?? 0;
+        const bValue = b[this.sortField!] ?? 0;
+        const result = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        return this.sortDirection === 'asc' ? result : -result;
+      });
+    }
+
+    this.displayedServers = filtered;
   }
 
-  trackByServerId(index: number, server: Server): string {
+  trackByServerId(index: number, server: Server): number {
     return server.id;
   }
 
-  onServerSelect(server: Server) {
-    console.log(server)
+  onServerSelect(server: Server): void {
     this.serverSelect.emit(server);
-  }
-
-  onFiltersChange() {
-    // Дополнительная логика при изменении фильтров
   }
 }
