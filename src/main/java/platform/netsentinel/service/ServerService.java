@@ -35,6 +35,11 @@ public class ServerService {
         return serverRepository.findAll();
     }
 
+    public Server getServerById(Long serverId) {
+        return serverRepository.findById(serverId)
+                .orElseThrow(() -> new NoSuchElementException("Server with ID " + serverId + " not found"));
+    }
+
     /**
      * Register a new server or update an existing one based on sessionId or IP address.
      *
