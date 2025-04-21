@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/server")
+@RequestMapping("/api/server")
 public class ServerController {
 
     private final ServerService serverService;

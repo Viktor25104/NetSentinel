@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserStats } from '../../interfaces/user.interface';
+import {User, UserStats} from '../../interfaces/user.interface';
 
 @Component({
   selector: 'app-user-stats',
@@ -9,28 +9,18 @@ import { UserStats } from '../../interfaces/user.interface';
   template: `
     <div class="stats-container">
       <div class="cyber-card stats-overview">
-        <h2>Сводка по сотрудникам</h2>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">Всего сотрудников</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value success">{{ stats.active }}</div>
-            <div class="stat-label">Активных</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value warning">{{ stats.onVacation }}</div>
-            <div class="stat-label">В отпуске</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value info">{{ stats.onSickLeave }}</div>
-            <div class="stat-label">На больничном</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value neutral">{{ stats.onDayOff }}</div>
-            <div class="stat-label">В отгуле</div>
-          </div>
+        <div class="stat-header">
+          <h2>Сотрудники</h2>
+        </div>
+
+        <div class="stat-counters">
+          <div class="stat-pill total">👥 {{ stats.total }} Всего</div>
+          <div class="stat-pill success">🟢 {{ stats.active }} Активных</div>
+          <div class="stat-pill warning">🌴 {{ stats.onVacation }} Отпуск</div>
+          <div class="stat-pill info">🤒 {{ stats.onSickLeave }} Больничный</div>
+          <div class="stat-pill neutral">☕ {{ stats.onDayOff }} Отгул</div>
+          <div class="stat-pill danger">⛔ {{ stats.blocked }} Заблок.</div>
+          <div class="stat-pill muted">💤 {{ stats.inactive }} Неактивных</div>
         </div>
       </div>
 
@@ -69,39 +59,62 @@ import { UserStats } from '../../interfaces/user.interface';
       gap: 2rem;
     }
 
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .total-label {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
     .stats-overview {
       padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
-    .stats-overview h2 {
-      margin: 0 0 2rem 0;
-    }
-
-    .stats-grid {
+    .stat-counters {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
+      gap: 1rem;
+      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      justify-content: center;
+      align-items: stretch;
     }
 
-    .stat-item {
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      font-weight: 500;
+      font-size: 0.95rem;
       text-align: center;
+      transition: background 0.3s ease;
+      animation: fadeInUp 0.3s ease;
+      white-space: nowrap;
     }
 
-    .stat-value {
-      font-size: 2.5rem;
+    .stat-pill.total {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--primary-blue);
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid var(--primary-blue);
     }
 
-    .stat-value.success { color: var(--accent-green); }
-    .stat-value.warning { color: #ffc107; }
-    .stat-value.info { color: var(--primary-blue); }
-    .stat-value.neutral { color: #9e9e9e; }
-
-    .stat-label {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.9rem;
-    }
+    .stat-pill.success { color: var(--accent-green); }
+    .stat-pill.warning { color: #ffc107; }
+    .stat-pill.info    { color: var(--primary-blue); }
+    .stat-pill.neutral { color: #9e9e9e; }
+    .stat-pill.danger  { color: var(--accent-red); }
+    .stat-pill.muted   { color: #aaa; }
 
     .detailed-stats {
       display: grid;
@@ -111,10 +124,6 @@ import { UserStats } from '../../interfaces/user.interface';
 
     .detailed-stats .cyber-card {
       padding: 1.5rem;
-    }
-
-    .detailed-stats h3 {
-      margin: 0 0 1.5rem 0;
     }
 
     .stats-list {
@@ -154,11 +163,29 @@ import { UserStats } from '../../interfaces/user.interface';
       color: rgba(255, 255, 255, 0.7);
     }
 
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     @media (max-width: 768px) {
       .detailed-stats {
         grid-template-columns: 1fr;
       }
+
+      .stat-pill {
+        width: 100%;
+        justify-content: space-between;
+        display: flex;
+      }
     }
+
   `]
 })
 export class UserStatsComponent {

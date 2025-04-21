@@ -173,6 +173,52 @@ input:checked + .switch-slider::before {
   color: #fff;
 }
 
+.password-change-form {
+  margin-top: 2rem;
+  padding: 2rem;
+  background-color: var(--card-bg, #1a1a1a);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.password-change-form h2 {
+  margin-bottom: 1rem;
+  font-size: 18px;
+}
+
+.password-change-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.password-change-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.password-change-form .cyber-input {
+  background: #222;
+  border: 1px solid #444;
+  padding: 10px;
+  color: white;
+  border-radius: 6px;
+}
+
+.password-change-form .error {
+  color: #ff5e5e;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.password-change-form button[type="submit"] {
+  margin-top: 1rem;
+  align-self: flex-end;
+  justify-self: flex-end;
+  width: max-content;
+}
+
+
 @media (max-width: 768px) {
   .profile-page {
     padding: 1rem;

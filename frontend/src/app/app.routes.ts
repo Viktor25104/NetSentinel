@@ -11,6 +11,7 @@ import { SettingsComponent } from './dashboard/pages/settings/settings.component
 import { DocumentationComponent } from './dashboard/pages/documentation/documentation.component';
 import { ProfileComponent } from './dashboard/pages/profile/profile.component';
 import { authGuard } from './core/guards/auth.guard';
+import {ProfileCompletionGuard} from './core/guards/profile.guard';
 
 export const routes: Routes = [
   { path: "", component: HomeComponent },
@@ -20,13 +21,13 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard],
     children: [
-      { path: "", component: OverviewComponent },
-      { path: "servers", component: ServersComponent },
-      { path: "users", component: UsersComponent },
-      { path: "network", component: NetworkComponent },
-      { path: "advices", component: AdvicesComponent },
-      { path: "documentation", component: DocumentationComponent },
-      { path: "profile", component: ProfileComponent },
-      { path: "settings", component: SettingsComponent }
+      { path: "", component: OverviewComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "servers", component: ServersComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "users", component: UsersComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "network", component: NetworkComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "advices", component: AdvicesComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "documentation", component: DocumentationComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "settings", component: SettingsComponent, canActivate: [ProfileCompletionGuard] },
+      { path: "profile", component: ProfileComponent }
     ]}
 ];

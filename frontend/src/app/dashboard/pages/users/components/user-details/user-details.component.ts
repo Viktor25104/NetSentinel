@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from '../../interfaces/user.interface';
 import { trigger, transition, style, animate } from '@angular/animations';
+import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-user-details',
@@ -25,7 +26,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
           <button class="back-button" (click)="onClose()">←</button>
           <div class="user-avatar">
             <img [src]="user.avatar" [alt]="user.firstName">
-            <span class="status-dot" [class]="user.status"></span>
+            <span class="status-dot" [class]="user.employmentStatus"></span>
           </div>
           <div class="user-main-info">
             <h2>{{ user.firstName }} {{ user.lastName }}</h2>
@@ -39,10 +40,30 @@ import { trigger, transition, style, animate } from '@angular/animations';
           <button class="cyber-button">
             <i>📞</i> Позвонить
           </button>
-          <button class="cyber-button warning">
+          <button class="cyber-button warning"
+                  (click)="confirmBlock('blocked')"
+                  *ngIf="user.employmentStatus !== 'blocked'">
             <i>⚠️</i> Заблокировать
           </button>
+          <button class="cyber-button success"
+                  (click)="confirmBlock('active')"
+                  *ngIf="user.employmentStatus === 'blocked'">
+            <i>✅</i> Разблокировать
+          </button>
         </div>
+
+        <!-- МОДАЛЬНОЕ ОКНО -->
+        <div class="modal-overlay" *ngIf="showConfirmation">
+          <div class="modal">
+            <h3>{{ pendingStatus === 'blocked' ? 'Заблокировать' : 'Разблокировать' }} пользователя?</h3>
+            <p>Вы уверены, что хотите {{ pendingStatus === 'blocked' ? 'заблокировать' : 'разблокировать' }} {{ user?.firstName }}?</p>
+            <div class="modal-actions">
+              <button class="cyber-button danger" (click)="updateStatus(pendingStatus)">Подтвердить</button>
+              <button class="cyber-button" (click)="cancelConfirmation()">Отмена</button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="details-grid">
@@ -77,26 +98,31 @@ import { trigger, transition, style, animate } from '@angular/animations';
           <div class="status-controls">
             <button class="cyber-button"
                     [class.active]="user.employmentStatus === 'active'"
+                    [disabled]="user.employmentStatus === 'blocked'"
                     (click)="updateStatus('active')">
               Активен
             </button>
             <button class="cyber-button"
                     [class.active]="user.employmentStatus === 'vacation'"
+                    [disabled]="user.employmentStatus === 'blocked'"
                     (click)="updateStatus('vacation')">
               Отпуск
             </button>
             <button class="cyber-button"
                     [class.active]="user.employmentStatus === 'sick_leave'"
+                    [disabled]="user.employmentStatus === 'blocked'"
                     (click)="updateStatus('sick_leave')">
               Больничный
             </button>
             <button class="cyber-button"
                     [class.active]="user.employmentStatus === 'day_off'"
+                    [disabled]="user.employmentStatus === 'blocked'"
                     (click)="updateStatus('day_off')">
               Отгул
             </button>
           </div>
         </div>
+
 
         <!-- Активность -->
         <div class="cyber-card">
@@ -190,10 +216,13 @@ import { trigger, transition, style, animate } from '@angular/animations';
       border: 2px solid var(--card-bg);
     }
 
-    .status-dot.online { background: var(--accent-green); }
-    .status-dot.offline { background: #9e9e9e; }
-    .status-dot.away { background: #ffc107; }
-    .status-dot.busy { background: var(--accent-red); }
+    .status-dot.active { background-color: var(--accent-green); }
+    .status-dot.vacation { background-color: #ffc107; }
+    .status-dot.sick_leave { background-color: var(--primary-blue); }
+    .status-dot.day_off { background-color: #9e9e9e; }
+    .status-dot.inactive { display: none; }
+    .status-dot.blocked { background-color: #f44336; }
+
 
     .user-main-info h2 {
       margin: 0;
@@ -266,6 +295,16 @@ import { trigger, transition, style, animate } from '@angular/animations';
       color: #9e9e9e;
     }
 
+    .status-badge.inactive {
+      background: rgba(100, 149, 237, 0.1);
+      color: #6495ED;
+    }
+
+    .status-badge.blocked {
+      background: rgba(255, 0, 0, 0.1);
+      color: #f44336;
+    }
+
     .status-controls {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -276,6 +315,50 @@ import { trigger, transition, style, animate } from '@angular/animations';
       background: rgba(0, 243, 255, 0.2);
       color: #fff;
     }
+
+    .cyber-button:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.3);
+      cursor: not-allowed;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      opacity: 0.6;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,243,255,0.3);
+      text-align: center;
+      color: white;
+    }
+
+    .modal h3 {
+      margin-bottom: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
 
     .activity-list {
       display: flex;
@@ -335,17 +418,33 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class UserDetailsComponent {
   @Input() user: User | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() statusChange = new EventEmitter<{ userId: string; status: User['employmentStatus'] }>();
+  @Output() statusChange = new EventEmitter<{ userId: number; status: User['employmentStatus'] }>();
 
-  getStatusLabel(status: User['employmentStatus']): string {
-    const labels: Record<User['employmentStatus'], string> = {
+  showConfirmation = false;
+  pendingStatus: User['employmentStatus'] = 'active';
+
+  constructor(private http: HttpClient) {
+  }
+
+  getStatusLabel(status?: User['employmentStatus']): string {
+    const labels: Record<NonNullable<User['employmentStatus']>, string> = {
       active: 'Активен',
       vacation: 'В отпуске',
       sick_leave: 'На больничном',
       day_off: 'В отгуле',
-      inactive: 'Неактивен'
+      inactive: 'Неактивен',
+      blocked: 'Заблокирован'
     };
-    return labels[status];
+    return status ? labels[status] : 'Неизвестно';
+  }
+
+  confirmBlock(status: User['employmentStatus']) {
+    this.pendingStatus = status;
+    this.showConfirmation = true;
+  }
+
+  cancelConfirmation() {
+    this.showConfirmation = false;
   }
 
   formatDate(date: string): string {
@@ -361,8 +460,28 @@ export class UserDetailsComponent {
   }
 
   updateStatus(status: User['employmentStatus']) {
-    if (this.user) {
-      this.statusChange.emit({ userId: this.user.id, status });
+    if (!this.user || this.user.employmentStatus === status) {
+      this.showConfirmation = false;
+      return;
     }
+
+    this.http.put(`http://localhost:8080/api/users/${this.user.id}/employment-status`, { status })
+      .subscribe({
+        next: () => {
+          this.user!.employmentStatus = status;
+          this.showConfirmation = false;
+
+          this.statusChange.emit({
+            userId: this.user!.id,
+            status: status
+          });
+        },
+        error: err => {
+          console.error('❌ Ошибка обновления статуса:', err);
+          alert('Ошибка при обновлении статуса пользователя');
+          this.showConfirmation = false;
+        }
+      });
   }
+
 }

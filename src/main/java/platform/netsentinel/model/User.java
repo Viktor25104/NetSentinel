@@ -38,6 +38,18 @@ public class User {
     private String timezone;
 
     @Column(nullable = false)
+    private String status = "online";
+
+    @Column(name = "employment_status", nullable = false)
+    private String employmentStatus = "active";
+
+    @Column(name = "last_active")
+    private String lastActive;
+
+    @Column(name = "join_date")
+    private String joinDate;
+
+    @Column(nullable = false)
     private boolean notifyPush = false;
 
     @Column(nullable = false)
@@ -52,6 +64,7 @@ public class User {
     @Column(name = "avatar_url")
     private String avatar;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;

@@ -1,17 +1,15 @@
 import { Component } from '@angular/core';
 import { animate, style, transition, trigger } from '@angular/animations';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import {HttpClient} from '@angular/common/http';
-import {AuthService, UserProfile} from '../core/services/auth/auth.service';
+import { AuthService } from '../core/services/auth/auth.service';
+import { User } from '../dashboard/pages/users/interfaces/user.interface';
 
 @Component({
   selector: 'app-auth',
-  imports: [
-    ReactiveFormsModule,
-    CommonModule
-  ],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule],
   animations: [
     trigger('slideIn', [
       transition(':enter', [
@@ -36,7 +34,6 @@ export class AuthComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private http: HttpClient,
     private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
@@ -45,20 +42,20 @@ export class AuthComponent {
     });
 
     this.registerForm = this.fb.group({
-      // Шаг 1: Личные данные
+      // Шаг 1
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       name: ['', Validators.required],
       lastName: ['', Validators.required],
       phone: ['', Validators.required],
 
-      // Шаг 2: Компания
+      // Шаг 2
       companyName: ['', Validators.required],
       position: ['', Validators.required],
       department: ['', Validators.required],
       companyWebsite: ['', Validators.required],
 
-      // Шаг 3: Адрес
+      // Шаг 3
       country: ['', Validators.required],
       city: ['', Validators.required],
       street: ['', Validators.required],
@@ -69,74 +66,54 @@ export class AuthComponent {
 
   setLoginMode(isLogin: boolean) {
     this.isLogin = isLogin;
-    if (!isLogin) {
-      this.currentStep = 1;
-    }
+    if (!isLogin) this.currentStep = 1;
   }
 
   nextStep() {
-    if (this.canProceedToNextStep()) {
-      this.currentStep++;
-    }
+    if (this.canProceedToNextStep()) this.currentStep++;
   }
 
   previousStep() {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-    }
+    if (this.currentStep > 1) this.currentStep--;
   }
 
   canProceedToNextStep(): boolean {
-    if (this.currentStep === 1) {
-      const step1Controls = ['email', 'password', 'name'];
-      return step1Controls.every(control =>
-        this.registerForm.get(control)?.valid
-      );
-    }
-    if (this.currentStep === 2) {
-      const step2Controls = ['companyName', 'position'];
-      return step2Controls.every(control =>
-        this.registerForm.get(control)?.valid
-      );
-    }
-    return true;
+    const controls = {
+      1: ['email', 'password', 'name', 'lastName', 'phone'],
+      2: ['companyName', 'position', 'department', 'companyWebsite']
+    }[this.currentStep];
+
+    return controls?.every(c => this.registerForm.get(c)?.valid) ?? true;
   }
 
   onLogin() {
-    if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
+    if (!this.loginForm.valid) return;
+    const { email, password } = this.loginForm.value;
 
-      this.authService.login(email, password).subscribe(
-        (user: UserProfile) => {
-          if (user) {
-            this.router.navigate(['/dashboard']);
-          }
-        },
-        (err: any) => {
-          console.error('Login error:', err);
-          alert('Ошибка входа: ' + (err.error?.message || 'Попробуйте снова'));
-        }
-      );
-    }
+    this.authService.login(email, password).subscribe({
+      next: (user: User) => {
+        if (user) this.router.navigate(['/dashboard']);
+      },
+      error: err => {
+        console.error('❌ Ошибка входа:', err);
+        alert('Ошибка входа: ' + (err.error?.message || 'Попробуйте снова'));
+      }
+    });
   }
 
   onRegister() {
-    if (this.registerForm.valid) {
-      const registerData = this.registerForm.value;
+    if (!this.registerForm.valid) return;
 
-      this.authService.register(registerData).subscribe(
-        (user: UserProfile) => {
-          if (user) {
-            this.router.navigate(['/dashboard']);
-          }
-        },
-        (err: any) => {
-          console.error('Registration error:', err);
-          alert('Ошибка регистрации: ' + (err.error?.message || 'Попробуйте снова'));
-        }
-      );
-    }
+    const registerData = this.registerForm.value;
+
+    this.authService.register(registerData).subscribe({
+      next: (user: User) => {
+        if (user) this.router.navigate(['/dashboard']);
+      },
+      error: err => {
+        console.error('❌ Ошибка регистрации:', err);
+        alert('Ошибка регистрации: ' + (err.error?.message || 'Попробуйте снова'));
+      }
+    });
   }
-
-
 }

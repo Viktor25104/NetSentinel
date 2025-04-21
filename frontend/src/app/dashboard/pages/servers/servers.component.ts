@@ -23,7 +23,7 @@ export class ServersComponent implements OnInit {
     interval(10000).pipe(
       startWith(0),
       switchMap(() =>
-        this.http.get<Server[]>('http://localhost:8080/server/all', { withCredentials: true })
+        this.http.get<Server[]>('http://localhost:8080/api/server/all', { withCredentials: true })
           .pipe(
             catchError(error => {
               console.error('Error fetching servers:', error);

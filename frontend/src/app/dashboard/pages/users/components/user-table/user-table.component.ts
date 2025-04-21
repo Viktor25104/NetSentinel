@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../interfaces/user.interface';
+import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-user-table',
@@ -13,7 +14,7 @@ import { User } from '../../interfaces/user.interface';
         <h2>Сотрудники</h2>
         <div class="table-actions">
           <div class="filters">
-            <select class="cyber-input" [(ngModel)]="statusFilter" (ngModelChange)="onFiltersChange()">
+            <select class="cyber-select" [(ngModel)]="statusFilter" (ngModelChange)="onFiltersChange()">
               <option value="">Все статусы</option>
               <option value="active">Активные</option>
               <option value="vacation">В отпуске</option>
@@ -21,7 +22,7 @@ import { User } from '../../interfaces/user.interface';
               <option value="day_off">В отгуле</option>
               <option value="inactive">Неактивные</option>
             </select>
-            <select class="cyber-input" [(ngModel)]="departmentFilter" (ngModelChange)="onFiltersChange()">
+            <select class="cyber-select" [(ngModel)]="departmentFilter" (ngModelChange)="onFiltersChange()">
               <option value="">Все отделы</option>
               <option *ngFor="let dept of uniqueDepartments" [value]="dept">
                 {{ dept }}
@@ -29,15 +30,59 @@ import { User } from '../../interfaces/user.interface';
             </select>
           </div>
           <div class="search-bar">
-            <input type="text" 
-                   class="cyber-input" 
-                   placeholder="Поиск по имени или email..." 
+            <input type="text"
+                   class="cyber-input"
+                   placeholder="Поиск по имени или email..."
                    [(ngModel)]="searchQuery"
                    (ngModelChange)="onFiltersChange()">
           </div>
-          <button class="cyber-button">
+          <button class="cyber-button" (click)="openAddUserModal()">
             <i>➕</i> Добавить сотрудника
           </button>
+
+          <!-- Модальное окно -->
+          <div class="modal-overlay" *ngIf="showAddUserModal">
+            <div class="modal-window">
+              <h2>Добавление сотрудника</h2>
+              <form (ngSubmit)="submitNewUser()" #userForm="ngForm">
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input id="email" class="cyber-input" [(ngModel)]="newUser.email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="password">Пароль</label>
+                  <input id="password" class="cyber-input" [(ngModel)]="newUser.password" name="password" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="firstName">Имя</label>
+                  <input id="firstName" class="cyber-input" [(ngModel)]="newUser.firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="lastName">Фамилия</label>
+                  <input id="lastName" class="cyber-input" [(ngModel)]="newUser.lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="position">Должность</label>
+                  <input id="position" class="cyber-input" [(ngModel)]="newUser.position" name="position">
+                </div>
+
+                <div class="form-group">
+                  <label for="department">Отдел</label>
+                  <input id="department" class="cyber-input" [(ngModel)]="newUser.department" name="department">
+                </div>
+
+                <div class="modal-actions">
+                  <button type="submit" class="cyber-button" [disabled]="!userForm.form.valid">Добавить</button>
+                  <button type="button" class="cyber-button danger" (click)="closeAddUserModal()">Отмена</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -53,14 +98,14 @@ import { User } from '../../interfaces/user.interface';
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of filteredUsers" 
+          <tr *ngFor="let user of filteredUsers"
               (click)="onUserSelect(user)"
               [class.selected]="selectedUserId === user.id">
             <td>
               <div class="user-info">
                 <div class="user-avatar">
                   <img [src]="user.avatar" [alt]="user.firstName">
-                  <span class="status-dot" [class]="user.status"></span>
+                  <span [ngClass]="'status-dot ' + user.employmentStatus"></span>
                 </div>
                 <div class="user-details">
                   <div class="user-name">{{ user.firstName }} {{ user.lastName }}</div>
@@ -172,21 +217,13 @@ import { User } from '../../interfaces/user.interface';
       border: 2px solid var(--card-bg);
     }
 
-    .status-dot.online {
-      background: var(--accent-green);
-    }
+    .status-dot.active { background-color: var(--accent-green); }
+    .status-dot.vacation { background-color: #ffc107; }
+    .status-dot.sick_leave { background-color: var(--primary-blue); }
+    .status-dot.day_off { background-color: #9e9e9e; }
+    .status-dot.inactive { display: none; }
+    .status-dot.blocked { background-color: #f44336; }
 
-    .status-dot.offline {
-      background: #9e9e9e;
-    }
-
-    .status-dot.away {
-      background: #ffc107;
-    }
-
-    .status-dot.busy {
-      background: var(--accent-red);
-    }
 
     .user-details {
       display: flex;
@@ -232,9 +269,96 @@ import { User } from '../../interfaces/user.interface';
     }
 
     .status-badge.inactive {
+      background: rgba(100, 149, 237, 0.1);
+      color: #6495ED;
+    }
+
+    .status-badge.blocked {
+      background: rgba(255, 0, 0, 0.1);
+      color: #f44336;
+    }
+
+    .cyber-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 0.5rem 1rem;
+      color: white;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    .cyber-select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .cyber-select:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.2);
+    }
+
+    .cyber-select option {
+      background-color: #1a1a1a;
+      color: white;
+      font-size: 0.9rem;
+      padding: 0.5rem;
+      border: none;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-window {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 0.3rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .cyber-button.danger {
       background: rgba(255, 77, 77, 0.1);
       color: var(--accent-red);
     }
+
 
     @media (max-width: 1200px) {
       .table-actions {
@@ -251,12 +375,25 @@ import { User } from '../../interfaces/user.interface';
 export class UserTableComponent {
   @Input() users: User[] = [];
   @Input() minimized = false;
-  @Input() selectedUserId: string | null = null;
+  @Input() selectedUserId: number | null = null;
   @Output() userSelect = new EventEmitter<User>();
+  @Output() refresh = new EventEmitter<void>();
 
   statusFilter = '';
   departmentFilter = '';
   searchQuery = '';
+
+  showAddUserModal = false;
+  newUser = {
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    position: '',
+    department: ''
+  };
+
+  constructor(private http: HttpClient) {}
 
   get uniqueDepartments() {
     return [...new Set(this.users.map(user => user.department))];
@@ -264,25 +401,55 @@ export class UserTableComponent {
 
   get filteredUsers() {
     return this.users.filter(user => {
-      const matchesSearch = 
+      const matchesSearch =
         `${user.firstName} ${user.lastName}`.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(this.searchQuery.toLowerCase());
       const matchesStatus = !this.statusFilter || user.employmentStatus === this.statusFilter;
       const matchesDepartment = !this.departmentFilter || user.department === this.departmentFilter;
-      
+
       return matchesSearch && matchesStatus && matchesDepartment;
     });
   }
 
-  getStatusLabel(status: User['employmentStatus']): string {
-    const labels: Record<User['employmentStatus'], string> = {
+  getStatusLabel(status?: User['employmentStatus']): string {
+    const labels: Record<NonNullable<User['employmentStatus']>, string> = {
       active: 'Активен',
       vacation: 'В отпуске',
       sick_leave: 'На больничном',
       day_off: 'В отгуле',
-      inactive: 'Неактивен'
+      inactive: 'Неактивен',
+      blocked: 'Заблокирован'
     };
-    return labels[status];
+
+    return status ? labels[status] : 'Неизвестно';
+  }
+
+  openAddUserModal() {
+    this.showAddUserModal = true;
+  }
+
+  closeAddUserModal() {
+    this.showAddUserModal = false;
+  }
+
+  submitNewUser() {
+    const payload = {
+      ...this.newUser
+    };
+
+    this.http.post('http://localhost:8080/api/users/create', payload, {
+      withCredentials: true
+    }).subscribe({
+      next: (res) => {
+        console.log('✅ Сотрудник добавлен:', res);
+        this.refresh.emit()
+        this.closeAddUserModal();
+      },
+      error: (err) => {
+        console.error('❌ Ошибка при добавлении сотрудника:', err);
+        alert('Ошибка при добавлении сотрудника');
+      }
+    });
   }
 
   formatDate(date: string): string {

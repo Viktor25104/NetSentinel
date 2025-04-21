@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { AuthService, UserProfile } from '../../core/services/auth/auth.service';
+import { AuthService } from '../../core/services/auth/auth.service';
+import { User} from '../pages/users/interfaces/user.interface';
 
 @Component({
   selector: 'app-header',
@@ -267,7 +268,7 @@ import { AuthService, UserProfile } from '../../core/services/auth/auth.service'
   `]
 })
 export class HeaderComponent {
-  user: UserProfile | null = null;
+  user: User | null = null;
   isProfileMenuOpen = false;
   showLogoutModal = false;
 

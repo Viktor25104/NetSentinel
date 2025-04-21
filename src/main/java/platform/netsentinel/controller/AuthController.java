@@ -4,20 +4,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import platform.netsentinel.dto.auth.LoginDto;
 import platform.netsentinel.dto.auth.UserDto;
 import platform.netsentinel.model.User;
 import platform.netsentinel.service.UserService;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,11 +27,9 @@ import java.util.Optional;
 public class AuthController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
     public AuthController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
@@ -77,16 +75,26 @@ public class AuthController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Успешный вход!");
-            response.put("username", user.getEmail());
-            response.put("userId", user.getId());
+
+            response.put("id", user.getId());
             response.put("firstName", user.getFirstName());
             response.put("lastName", user.getLastName());
+
+            response.put("email", user.getEmail());
             response.put("position", user.getPosition());
             response.put("department", user.getDepartment());
             response.put("role", user.getRole());
             response.put("avatar", user.getAvatar());
+            response.put("phone", user.getPhone());
 
-            System.out.println(response);
+            response.put("location", user.getLocation());
+            response.put("timezone", user.getTimezone());
+            response.put("bio", user.getBio());
+            response.put("joinDate", user.getJoinDate());
+
+            response.put("notifyEmail", user.isNotifyEmail());
+            response.put("notifyPush", user.isNotifyPush());
+            response.put("notifyTelegram", user.isNotifyTelegram());
 
             return ResponseEntity.ok(response);
         } else {
@@ -94,6 +102,22 @@ public class AuthController {
                     "message", "Неверный логин или пароль"
             ));
         }
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User is not authenticated");
+        }
+
+        String email = authentication.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return ResponseEntity.ok(user);
     }
 
 }
